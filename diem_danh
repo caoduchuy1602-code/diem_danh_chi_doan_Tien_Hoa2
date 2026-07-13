@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Quản Lý Chi Đoàn Tiến Hòa (Bảo Mật Cao Nhất)</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <style>
+        body { background-color: #0b1329; }
+        .dark-card { background-color: #1c2541; border-color: #3a506b; }
+        .dark-input { background-color: #1c2541; border-color: #3a506b; color: #ffffff; }
+        .dark-input:focus { border-color: #5bc0be; }
+        .loading-overlay { background: rgba(11, 19, 41, 0.9); }
+    </style>
+</head>
+<body class="text-slate-200 font-sans min-h-screen pb-12">
+
+    <div id="loadingOverlay" class="fixed inset-0 loading-overlay z-50 flex flex-col items-center justify-center transition-all duration-300">
+        <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        <p class="text-sm font-semibold text-slate-300 mt-4 tracking-wide"></p>
+    </div>
+
+    <header id="mainBanner" class="relative bg-gradient-to-r from-blue-900 to-slate-900 py-6 px-8 border-b border-slate-700 shadow-xl overflow-hidden bg-cover bg-center">
+        <div class="absolute inset-0 bg-slate-950/70 z-0"></div>
+        
+        <div class="relative max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 z-10">
+            <div>
+                <p class="text-xs text-emerald-400 font-bold uppercase tracking-widest flex items-center gap-1.5">
+                    <i class="fa-solid fa-cloud"></i> 
+                </p>
+                <h1 class="text-3xl font-black text-white tracking-tight mt-1">CHI ĐOÀN TIẾN HÒA</h1>
+                <p class="text-xs text-slate-400 mt-1">Điểm Danh Đoàn Viên</p>
+            </div>
+            
+            <div class="flex items-center gap-2 flex-wrap">
+                <button id="roleBtn" class="bg-slate-700/40 text-slate-400 border border-slate-600/40 text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5">
+                    <span id="roleText">Khách Xem</span>
+                </button>
+                <button onclick="changeAdminPassword()" id="changePwdBtn" class="hidden bg-amber-600/20 hover:bg-amber-600 text-amber-400 hover:text-white border border-amber-500/30 text-xs font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow-md">
+                    <i class="fa-solid fa-key"></i> Đổi mật khẩu
+                </button>
+                <button onclick="toggleAuth()" id="authBtn" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow-md">
+                    <i class="fa-solid fa-right-to-bracket"></i> Đăng nhập
+                </button>
+                <button id="changeBgBtn" onclick="changeBannerBackground()" class="hidden bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-image"></i> Đổi hình nền
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto px-6 mt-6">
+        <div class="flex bg-[#1c2541] p-1.5 rounded-xl border border-slate-700 gap-1 overflow-x-auto">
+            <button onclick="switchTab('diem-danh')" id="tab-diem-danh" class="tab-btn flex-1 min-w-[120px] py-2.5 rounded-lg text-sm font-bold transition flex items-center justify-center gap-2 bg-blue-600 text-white">
+                <i class="fa-solid fa-calendar-check"></i> Điểm danh hàng ngày
+            </button>
+            <button onclick="switchTab('thong-ke')" id="tab-thong-ke" class="tab-btn flex-1 min-w-[120px] py-2.5 rounded-lg text-sm font-bold transition flex items-center justify-center gap-2 text-slate-400 hover:bg-slate-800 hover:text-slate-200">
+                <i class="fa-solid fa-chart-simple"></i> Thống kê 
+            </button>
+            <button onclick="switchTab('doan-vien')" id="tab-doan-vien" class="tab-btn flex-1 min-w-[120px] py-2.5 rounded-lg text-sm font-bold transition flex items-center justify-center gap-2 text-slate-400 hover:bg-slate-800 hover:text-slate-200">
+                <i class="fa-solid fa-users"></i> Quản lý Đoàn viên
+            </button>
+        </div>
+    </div>
+
+    <main class="max-w-7xl mx-auto px-6 mt-6">
+
+        <div id="content-diem-danh" class="tab-content space-y-6">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="dark-card border p-4 rounded-xl flex justify-between items-center shadow-md">
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Tổng số buổi hệ thống</p>
+                        <p id="totalMeetingsCount" class="text-3xl font-black text-blue-400 mt-1">0</p>
+                    </div>
+                    <div class="bg-blue-500/10 p-3 rounded-xl text-blue-400 text-xl"><i class="fa-solid fa-layer-group"></i></div>
+                </div>
+                <div class="dark-card border p-4 rounded-xl flex justify-between items-center shadow-md">
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Hôm nay tham gia (X)</p>
+                        <p id="countX" class="text-3xl font-black text-emerald-400 mt-1">0</p>
+                    </div>
+                    <div class="bg-emerald-500/10 p-3 rounded-xl text-emerald-400 text-xl"><i class="fa-solid fa-circle-check"></i></div>
+                </div>
+                <div class="dark-card border p-4 rounded-xl flex justify-between items-center shadow-md">
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Hôm nay Phép / Vắng (P/K)</p>
+                        <p id="countPK" class="text-3xl font-black text-amber-400 mt-1">0</p>
+                    </div>
+                    <div class="bg-amber-500/10 p-3 rounded-xl text-amber-400 text-xl"><i class="fa-solid fa-envelope-open-text"></i></div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                <div class="flex gap-2 items-center w-full">
+                    <div class="relative flex-1">
+                        <i class="fa-solid fa-calendar absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                        <input type="date" id="attendanceDate" onchange="loadDataByDate()" class="dark-input w-full border rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition">
+                    </div>
+                    <button id="btnDeleteHistory" onclick="deleteAttendanceDayHistory()" class="hidden bg-rose-600/20 hover:bg-rose-600 text-rose-400 hover:text-white border border-rose-500/30 text-xs font-bold px-3 py-3 rounded-xl transition flex items-center justify-center gap-1.5 shadow-md h-full whitespace-nowrap" title="Xóa toàn bộ dữ liệu điểm danh của ngày này">
+                        <i class="fa-solid fa-trash-arrow-up"></i> Xóa ngày này
+                    </button>
+                </div>
+                <div class="relative md:col-span-2">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                    <input type="text" id="searchName" oninput="renderAttendanceTable()" placeholder="Tìm kiếm họ tên đoàn viên..." class="dark-input w-full border rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition">
+                </div>
+            </div>
+
+            <div class="dark-card border rounded-xl p-5 shadow-sm">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-sm font-bold text-blue-400 uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-file-signature"></i> Nội dung sinh hoạt ngày hôm nay
+                    </h3>
+                    <button id="btnSaveMinutes" onclick="saveMinutesFirebase()" class="hidden bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1 rounded-lg transition">Lưu biên bản</button>
+                </div>
+                <textarea id="meetingMinutes" rows="3" placeholder="Nhập tóm tắt chủ đề sinh hoạt ngày hôm nay..." class="dark-input w-full border rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition resize-none"></textarea>
+            </div>
+
+            <div class="dark-card border rounded-xl overflow-hidden shadow-xl">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-800/60 border-b border-slate-700 text-slate-400 text-xs font-bold uppercase">
+                                <th class="py-3.5 px-6 text-center w-16">STT</th>
+                                <th class="py-3.5 px-6">Họ và tên Đoàn viên</th>
+                                <th class="py-3.5 px-6 text-center w-28">Năm sinh</th>
+                                <th class="py-3.5 px-4 text-center w-36 text-blue-400">Tổng số buổi</th>
+                                <th class="py-3.5 px-6 text-center w-64">Điểm danh hôm nay</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendanceTableBody" class="divide-y divide-slate-700/50 text-sm"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="content-thong-ke" class="tab-content hidden space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-2">
+                <div>
+                    <h2 class="text-lg font-bold text-white">Bảng Thống Kê Chuyên Cần </h2>
+                    <p class="text-xs text-slate-400">Dữ liệu tự động tính theo cấu trúc file danh sách chuẩn.</p>
+                </div>
+                <div class="flex items-center gap-2 self-stretch sm:self-auto">
+                    <button id="btnDeleteAllHistory" onclick="deleteAllAttendanceHistory()" class="hidden bg-rose-600/10 hover:bg-rose-600 text-rose-400 hover:text-white border border-rose-500/30 text-xs font-bold px-4 py-2 rounded-xl transition flex items-center gap-1.5 shadow-md">
+                        <i class="fa-solid fa-dumpster-fire"></i> Xóa hết lịch sử hệ thống
+                    </button>
+                    <button onclick="exportAllFirebaseToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition flex items-center gap-1.5 shadow-md">
+                        <i class="fa-solid fa-file-excel"></i> Xuất File Excel (.xlsx)
+                    </button>
+                </div>
+            </div>
+            
+            <div class="dark-card border rounded-xl overflow-hidden shadow-xl">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-center">
+                        <thead>
+                            <tr class="bg-slate-800/60 border-b border-slate-700 text-slate-400 text-xs font-bold uppercase">
+                                <th class="py-3.5 px-4 w-16">STT</th>
+                                <th class="py-3.5 px-6 text-left">Họ và tên Đoàn viên</th>
+                                <th class="py-3.5 px-4 w-24">Năm sinh</th>
+                                <th class="py-3.5 px-4 text-blue-400 font-bold w-36">Tổng số buổi</th>
+                                <th class="py-3.5 px-4 text-emerald-400 font-bold w-28">Tham gia (X)</th>
+                                <th class="py-3.5 px-4 text-amber-400 font-bold w-36">Phép (P)</th>
+                                <th class="py-3.5 px-4 text-rose-400 font-bold w-28">Vắng (K)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="statsTableBody" class="divide-y divide-slate-700/50 text-sm"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="content-doan-vien" class="tab-content hidden space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                <div>
+                    <h2 class="text-lg font-bold text-white">Danh sách Chi đoàn Tiến Hòa</h2>
+                    <p class="text-xs text-slate-400">Quản lý, chỉnh sửa danh sách thành viên cốt cán của chi đoàn.</p>
+                </div>
+                <button id="btnInitData" onclick="initializeDefaultMembers()" class="hidden bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold px-3 py-2 rounded-lg transition">
+                    <i class="fa-solid fa-database"></i> Khởi tạo dữ liệu gốc 
+                </button>
+            </div>
+
+            <div id="memberFormContainer" class="hidden dark-card border p-4 rounded-xl shadow-lg space-y-3">
+                <h3 id="formTitle" class="text-sm font-bold text-blue-400 uppercase tracking-wider"><i class="fa-solid fa-user-plus"></i> Thêm Đoàn Viên Mới</h3>
+                <input type="hidden" id="editMemberId">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="sm:col-span-2">
+                        <input type="text" id="inputMemberName" placeholder="Nhập họ và tên đoàn viên..." class="dark-input w-full border rounded-lg px-3 py-2 text-sm focus:outline-none">
+                    </div>
+                    <div>
+                        <input type="number" id="inputMemberYear" placeholder="Năm sinh..." class="dark-input w-full border rounded-lg px-3 py-2 text-sm focus:outline-none">
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2">
+                    <button onclick="cancelMemberForm()" id="btnCancelEdit" class="hidden bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-bold px-3 py-2 rounded-lg transition">Hủy bỏ</button>
+                    <button onclick="saveMemberFirebase()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-lg transition">
+                        <i class="fa-solid fa-floppy-disk"></i> Lưu thông tin
+                    </button>
+                </div>
+            </div>
+
+            <div class="dark-card border rounded-xl overflow-hidden shadow-xl">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-800/60 border-b border-slate-700 text-slate-400 text-xs font-bold uppercase">
+                                <th class="py-3.5 px-6 text-center w-16">STT</th>
+                                <th class="py-3.5 px-6">Họ và tên Đoàn viên</th>
+                                <th class="py-3.5 px-6 text-center w-36">Năm sinh</th>
+                                <th id="thActions" class="py-3.5 px-6 text-center w-40 hidden">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="membersTableBody" class="divide-y divide-slate-700/50 text-sm"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // ⚠️ THAY THẾ CẤU HÌNH FIREBASE CỦA BẠN VÀO ĐÂY
+         const firebaseConfig = {
+  apiKey: "AIzaSyDSWXvmMAsLI5u1yvcjiv7M_IW0yet-UEg",
+  authDomain: "diem-danh-tien-hoa.firebaseapp.com",
+  databaseURL: "https://diem-danh-tien-hoa-default-rtdb.firebaseio.com",
+  projectId: "diem-danh-tien-hoa",
+  storageBucket: "diem-danh-tien-hoa.firebasestorage.app",
+  messagingSenderId: "767668395362",
+  appId: "1:767668395362:web:2f6846fa92be3725c7603b"
+};
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let originalMembers = []; 
+        let attendanceDataGlobal = {}; 
+        let isLoggedIn = false;
+        let currentAdminPassword = "admin"; 
+
+        document.getElementById('attendanceDate').valueAsDate = new Date();
+
+        window.onload = function() {
+            loadBannerSettings();
+            startFirebaseRealtimeSync();
+        };
+
+        function loadBannerSettings() {
+            const savedBg = localStorage.getItem('tien_hoa_banner') || 'https://images.unsplash.com/photo-1517486808906-6ca8b3f04846';
+            document.getElementById('mainBanner').style.backgroundImage = `url('${savedBg}')`;
+        }
+
+        function changeBannerBackground() {
+            if(!isLoggedIn) return;
+            let newUrl = prompt("Nhập liên kết (URL) hình nền tập thể mới:");
+            if(newUrl && newUrl.trim() !== "") {
+                localStorage.setItem('tien_hoa_banner', newUrl);
+                loadBannerSettings();
+            }
+        }
+
+        function startFirebaseRealtimeSync() {
+            if(firebaseConfig.apiKey.includes("YOUR_API_KEY")) {
+                alert("Bạn chưa sửa thông tin cấu hình `firebaseConfig` ở khoảng dòng 154!");
+                document.getElementById('loadingOverlay').classList.add('hidden');
+                return;
+            }
+
+            db.ref('adminPassword').on('value', (snapshot) => {
+                if(snapshot.exists()) {
+                    currentAdminPassword = snapshot.val();
+                } else {
+                    db.ref('adminPassword').set("admin");
+                }
+            });
+
+            db.ref('members').on('value', (snapshot) => {
+                const data = snapshot.val();
+                originalMembers = [];
+                if(data) {
+                    for(let id in data) {
+                        originalMembers.push({ id: id, name: data[id].name, birthYear: data[id].birthYear });
+                    }
+                }
+                originalMembers.sort((a, b) => a.name.localeCompare(b.name, 'vi'));
+                
+                if(originalMembers.length === 0 && isLoggedIn) {
+                    document.getElementById('btnInitData').classList.remove('hidden');
+                } else {
+                    document.getElementById('btnInitData').classList.add('hidden');
+                }
+
+                renderMembersTable();
+                loadDataByDate();
+                renderStatsTable();
+                document.getElementById('loadingOverlay').classList.add('hidden');
+            });
+
+            db.ref('attendance').on('value', (snapshot) => {
+                attendanceDataGlobal = snapshot.val() || {};
+                
+                let totalMeetings = Object.keys(attendanceDataGlobal).length;
+                document.getElementById('totalMeetingsCount').innerText = totalMeetings;
+
+                loadDataByDate();
+                renderStatsTable();
+            });
+        }
+
+        // HÀM XÓA TOÀN BỘ LỊCH SỬ CHUYÊN CẦN HỆ THỐNG
+        function deleteAllAttendanceHistory() {
+            if (!isLoggedIn) return;
+            
+            if (confirm("🚨 CẢNH BÁO NGUY HIỂM: Bạn có chắc chắn muốn XÓA SẠCH TOÀN BỘ lịch sử điểm danh và biên bản của tất cả các ngày từ trước tới nay không?")) {
+                if (confirm("Nhắc lại lần cuối: Hành động này sẽ làm trống hoàn toàn bảng thống kê lịch sử chuyên cần. Bạn vẫn muốn tiếp tục?")) {
+                    
+                    let checkPwd = prompt("Để thực hiện thao tác nhạy cảm này, vui lòng nhập lại mật khẩu Quản trị viên để xác nhận:");
+                    if (checkPwd !== currentAdminPassword) {
+                        alert("Mật khẩu xác nhận không chính xác! Hủy bỏ lệnh xóa.");
+                        return;
+                    }
+
+                    let updates = {};
+                    updates['/attendance'] = null;
+                    updates['/minutes'] = null;
+
+                    db.ref().update(updates).then(() => {
+                        alert("Hệ thống đã dọn sạch toàn bộ lịch sử điểm danh chuyên cần thành công!");
+                        loadDataByDate();
+                    }).catch(err => {
+                        alert("Gặp lỗi trong quá trình xóa: " + err.message);
+                    });
+                }
+            }
+        }
+
+        function deleteAttendanceDayHistory() {
+            if (!isLoggedIn) return;
+            const dateStr = document.getElementById('attendanceDate').value;
+            if (!dateStr) return;
+
+            if (confirm(`Bạn có chắc chắn muốn xóa dữ liệu điểm danh và biên bản sinh hoạt ngày [ ${dateStr} ]?`)) {
+                let updates = {};
+                updates['/attendance/' + dateStr] = null;
+                updates['/minutes/' + dateStr] = null;
+
+                db.ref().update(updates).then(() => {
+                    alert(`Đã xóa lịch sử ngày ${dateStr} thành công!`);
+                    loadDataByDate();
+                }).catch(err => {
+                    alert("Lỗi khi xóa dữ liệu: " + err.message);
+                });
+            }
+        }
+
+        function changeAdminPassword() {
+            if(!isLoggedIn) return;
+            
+            let oldPwd = prompt("Nhập mật khẩu hiện tại để xác minh:");
+            if(oldPwd !== currentAdminPassword) {
+                alert("Mật khẩu xác minh không chính xác!");
+                return;
+            }
+
+            let newPwd = prompt("Nhập mật khẩu mới:");
+            if(!newPwd || newPwd.trim() === "") {
+                alert("Mật khẩu mới không được để trống!");
+                return;
+            }
+
+            let confirmPwd = prompt("Nhập lại mật khẩu mới để xác nhận:");
+            if(newPwd !== confirmPwd) {
+                alert("Mật khẩu xác nhận không trùng khớp!");
+                return;
+            }
+
+            db.ref('adminPassword').set(newPwd.trim()).then(() => {
+                alert("Đã đổi mật khẩu quản trị viên thành công!");
+            }).catch(err => {
+                alert("Lỗi khi cập nhật mật khẩu: " + err.message);
+            });
+        }
+
+        function getMemberStats(memberId) {
+            let total = 0, x = 0, p = 0, k = 0;
+            for (let date in attendanceDataGlobal) {
+                if (attendanceDataGlobal[date] && Object.keys(attendanceDataGlobal[date]).length > 0) {
+                    total++;
+                    let status = attendanceDataGlobal[date][memberId] || 'X';
+                    if(status === 'X') x++;
+                    if(status === 'P') p++;
+                    if(status === 'K') k++;
+                }
+            }
+            return { total, x, p, k };
+        }
+
+        function loadDataByDate() {
+            const dateStr = document.getElementById('attendanceDate').value;
+            if(!dateStr) return;
+
+            db.ref('minutes/' + dateStr).once('value').then((snapshot) => {
+                document.getElementById('meetingMinutes').value = snapshot.val() || "";
+            });
+
+            renderAttendanceTable();
+            updateStatsCounter();
+        }
+
+        function renderAttendanceTable() {
+            const dateStr = document.getElementById('attendanceDate').value;
+            const tbody = document.getElementById('attendanceTableBody');
+            const keyword = document.getElementById('searchName').value.toLowerCase().trim();
+            tbody.innerHTML = '';
+
+            const disabled = !isLoggedIn ? 'disabled' : '';
+            const opacity = !isLoggedIn ? 'opacity-40 cursor-not-allowed' : '';
+            
+            let filtered = originalMembers.filter(m => m.name.toLowerCase().includes(keyword));
+            let dayLogs = attendanceDataGlobal[dateStr] || {};
+
+            filtered.forEach((member, index) => {
+                let status = dayLogs[member.id] || 'X'; 
+                let memberStats = getMemberStats(member.id);
+
+                const row = document.createElement('tr');
+                row.className = "hover:bg-slate-800/30 transition-colors";
+                row.innerHTML = `
+                    <td class="py-3.5 px-6 text-center text-slate-500 font-bold">${index + 1}</td>
+                    <td class="py-3.5 px-6 font-semibold text-slate-200">${member.name}</td>
+                    <td class="py-3.5 px-6 text-center text-slate-400">${member.birthYear}</td>
+                    <td class="py-3.5 px-4 text-center text-blue-400 font-bold bg-slate-800/20">${memberStats.total}</td>
+                    <td class="py-3.5 px-6">
+                        <div class="flex justify-center gap-1.5 ${opacity}">
+                            <button ${disabled} onclick="updateFirebaseStatus('${member.id}', 'X')" class="w-10 h-8 rounded-lg font-bold border transition text-xs ${status === 'X' ? 'bg-emerald-600 text-white border-emerald-600 shadow-lg' : 'bg-slate-800 text-slate-400 border-slate-700'}">X</button>
+                            <button ${disabled} onclick="updateFirebaseStatus('${member.id}', 'P')" class="w-10 h-8 rounded-lg font-bold border transition text-xs ${status === 'P' ? 'bg-amber-500 text-white border-amber-500 shadow-lg' : 'bg-slate-800 text-slate-400 border-slate-700'}">P</button>
+                            <button ${disabled} onclick="updateFirebaseStatus('${member.id}', 'K')" class="w-10 h-8 rounded-lg font-bold border transition text-xs ${status === 'K' ? 'bg-rose-600 text-white border-rose-600 shadow-lg' : 'bg-slate-800 text-slate-400 border-slate-700'}">K</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function updateFirebaseStatus(memberId, status) {
+            if(!isLoggedIn) return;
+            const dateStr = document.getElementById('attendanceDate').value;
+            if(!dateStr) return;
+            db.ref('attendance/' + dateStr + '/' + memberId).set(status);
+        }
+
+        function saveMinutesFirebase() {
+            if(!isLoggedIn) return;
+            const dateStr = document.getElementById('attendanceDate').value;
+            const text = document.getElementById('meetingMinutes').value;
+            if(!dateStr) return;
+
+            db.ref('minutes/' + dateStr).set(text).then(() => {
+                alert("Đã lưu biên bản sinh hoạt hôm nay thành công!");
+            });
+        }
+
+        function updateStatsCounter() {
+            const dateStr = document.getElementById('attendanceDate').value;
+            let dayLogs = attendanceDataGlobal[dateStr] || {};
+            
+            let x = 0, pk = 0;
+            originalMembers.forEach(m => {
+                let status = dayLogs[m.id] || 'X';
+                if (status === 'X') x++;
+                else pk++;
+            });
+
+            document.getElementById('countX').innerText = x;
+            document.getElementById('countPK').innerText = pk;
+        }
+
+        function renderStatsTable() {
+            const tbody = document.getElementById('statsTableBody');
+            tbody.innerHTML = '';
+
+            originalMembers.forEach((m, idx) => {
+                let stats = getMemberStats(m.id);
+
+                const row = document.createElement('tr');
+                row.className = "hover:bg-slate-800/30";
+                row.innerHTML = `
+                    <td class="py-3.5 px-4 text-slate-500 font-bold">${idx + 1}</td>
+                    <td class="py-3.5 px-6 text-left font-semibold text-slate-200">${m.name}</td>
+                    <td class="py-3.5 px-4 text-slate-400">${m.birthYear}</td>
+                    <td class="py-3.5 px-4 text-blue-400 font-black bg-slate-800/10">${stats.total}</td>
+                    <td class="py-3.5 px-4 text-emerald-400 font-bold">${stats.x}</td>
+                    <td class="py-3.5 px-4 text-amber-400 font-bold">${stats.p}</td>
+                    <td class="py-3.5 px-4 text-rose-400 font-bold">${stats.k}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function renderMembersTable() {
+            const tbody = document.getElementById('membersTableBody');
+            tbody.innerHTML = '';
+            
+            originalMembers.forEach((m, idx) => {
+                const row = document.createElement('tr');
+                row.className = "hover:bg-slate-800/30";
+                
+                let actionCells = '';
+                if(isLoggedIn) {
+                    actionCells = `
+                        <td class="py-3.5 px-6 text-center space-x-1">
+                            <button onclick="editMemberMode('${m.id}', '${m.name}', ${m.birthYear})" class="bg-blue-600/30 hover:bg-blue-600 text-blue-400 hover:text-white text-xs px-2 py-1 rounded transition"><i class="fa-solid fa-pen-to-square"></i> Sửa</button>
+                            <button onclick="deleteMemberFirebase('${m.id}', '${m.name}')" class="bg-rose-600/30 hover:bg-rose-600 text-rose-400 hover:text-white text-xs px-2 py-1 rounded transition"><i class="fa-solid fa-trash-can"></i> Xóa</button>
+                        </td>
+                    `;
+                }
+
+                row.innerHTML = `
+                    <td class="py-3.5 px-6 text-center text-slate-500 font-bold">${idx + 1}</td>
+                    <td class="py-3.5 px-6 font-semibold text-slate-200">${m.name}</td>
+                    <td class="py-3.5 px-6 text-center text-slate-400">${m.birthYear}</td>
+                    ${actionCells}
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function saveMemberFirebase() {
+            const id = document.getElementById('editMemberId').value.trim();
+            const name = document.getElementById('inputMemberName').value.trim();
+            const year = parseInt(document.getElementById('inputMemberYear').value);
+
+            if(!name || !year) {
+                alert("Vui lòng nhập đầy đủ thông tin!");
+                return;
+            }
+
+            if(id === "") {
+                const newMemberRef = db.ref('members').push();
+                newMemberRef.set({ name: name, birthYear: year }).then(() => {
+                    alert("Đã thêm đoàn viên mới!");
+                    cancelMemberForm();
+                });
+            } else {
+                db.ref('members/' + id).set({ name: name, birthYear: year }).then(() => {
+                    alert("Cập nhật thông tin đoàn viên thành công!");
+                    cancelMemberForm();
+                });
+            }
+        }
+
+        function editMemberMode(id, name, year) {
+            document.getElementById('formTitle').innerHTML = `<i class="fa-solid fa-pen-to-square"></i> Sửa Thông Tin Đoàn Viên`;
+            document.getElementById('editMemberId').value = id;
+            document.getElementById('inputMemberName').value = name;
+            document.getElementById('inputMemberYear').value = year;
+            document.getElementById('btnCancelEdit').classList.remove('hidden');
+            window.scrollTo({ top: document.getElementById('memberFormContainer').offsetTop - 20, behavior: 'smooth' });
+        }
+
+        function deleteMemberFirebase(id, name) {
+            if(confirm(`Xóa đoàn viên "${name}" khỏi danh sách?`)) {
+                db.ref('members/' + id).remove().then(() => {
+                    alert("Đã xóa xong.");
+                });
+            }
+        }
+
+        function cancelMemberForm() {
+            document.getElementById('formTitle').innerHTML = `<i class="fa-solid fa-user-plus"></i> Thêm Đoàn Viên Mới`;
+            document.getElementById('editMemberId').value = "";
+            document.getElementById('inputMemberName').value = "";
+            document.getElementById('inputMemberYear').value = "";
+            document.getElementById('btnCancelEdit').classList.add('hidden');
+        }
+
+        function initializeDefaultMembers() {
+            if(!confirm("Nạp danh sách 42 đoàn viên gốc chi đoàn Tiến Hòa lên đám mây?")) return;
+            const defaultList = [
+                { name: "Nguyễn Trần Thảo Nguyên", birthYear: 2011 }, { name: "Trần Văn Sáng", birthYear: 2011 },
+                { name: "Lê Minh Thiếu", birthYear: 2011 }, { name: "Kiều Đình Nam", birthYear: 2011 },
+                { name: "Nguyễn Diệp Tú", birthYear: 2011 }, { name: "Trần Hữu Thịnh", birthYear: 2011 },
+                { name: "Hoàng Khánh Ngọc", birthYear: 2011 }, { name: "Cao Đức Huy", birthYear: 2010 },
+                { name: "Nguyễn Thị Quỳnh Nhi", birthYear: 2010 }, { name: "Lê Nguyễn Minh Hằng", birthYear: 2010 },
+                { name: "Lê Minh Đăng", birthYear: 2010 }, { name: "Phạm Thị Thu Hiền", birthYear: 2010 },
+                { name: "Nguyễn Anh Dũng", birthYear: 2010 }, { name: "Nguyễn Hà Linh", birthYear: 2010 },
+                { name: "Nguyễn Bảo Nam ", birthYear: 2010 }, { name: "Nguyễn Lê Đăng Đán", birthYear: 2009 },
+                { name: "Nguyễn Đức Huy", birthYear: 2009 }, { name: "Đinh Gia Như", birthYear: 2009 },
+                { name: "Lương Viết Dũng", birthYear: 2009 }, { name: "Phan Viết Hào", birthYear: 2009 },
+                { name: "Nguyễn Hoài Nam", birthYear: 2009 }, { name: "Lương Viết Thành", birthYear: 2009 },
+                { name: "Phan Khánh Linh", birthYear: 2009 }, { name: "Nguyễn Tuấn Sang", birthYear: 2009 },
+                { name: "Nguyễn Ngọc Ánh ", birthYear: 2009 }, { name: "Nguyễn Hoàng Gia Bảo", birthYear: 2008 },
+                { name: "Trần Anh Duy ", birthYear: 2008 }, { name: "Vũ Uyên Ly", birthYear: 2008 },
+                { name: "Đinh Phương Bắc", birthYear: 2008 }, { name: "Lê Thảo My", birthYear: 2008 },
+                { name: "Lê Trà My", birthYear: 2008 }, { name: "Nguyễn Viết Đề", birthYear: 2008 },
+                { name: "Nguyễn Đăng Duy", birthYear: 2008 }, { name: "Nguyễn Thị Quỳnh Loan", birthYear: 2008 },
+                { name: "Lê Minh Thắng", birthYear: 2008 }, { name: "Nguyễn Bảo Thi", birthYear: 2008 },
+                { name: "Trần Minh Hưng", birthYear: 2008 }, { name: "Phạm Phương Vy", birthYear: 2008 },
+                { name: "Nguyễn Anh Quốc", birthYear: 2008 }, { name: "Bùi Mai Phương", birthYear: 2008 },
+                { name: "Nguyễn Ngọc Hà", birthYear: 2008 }, { name: "Nguyễn Ngọc Hà", birthYear: 2008 }
+            ];
+            let updates = {};
+            defaultList.forEach((m, i) => { updates['/members/m' + (i + 1)] = m; });
+            db.ref().update(updates);
+        }
+
+        function toggleAuth() {
+            if (!isLoggedIn) {
+                let pwd = prompt("Nhập mật khẩu quản trị viên:");
+                if (pwd === currentAdminPassword || (currentAdminPassword === "admin" && pwd === "00")) { 
+                    isLoggedIn = true; 
+                } else { 
+                    alert("Mật khẩu nhập vào không chính xác!"); 
+                }
+            } else { 
+                isLoggedIn = false; 
+                cancelMemberForm(); 
+            }
+            updateAuthUI();
+            renderAttendanceTable();
+            renderMembersTable();
+        }
+
+        function updateAuthUI() {
+            const text = document.getElementById('roleText');
+            const btn = document.getElementById('authBtn');
+            const thActions = document.getElementById('thActions');
+            const memberForm = document.getElementById('memberFormContainer');
+            
+            document.getElementById('changeBgBtn').classList.toggle('hidden', !isLoggedIn);
+            document.getElementById('btnSaveMinutes').classList.toggle('hidden', !isLoggedIn);
+            document.getElementById('changePwdBtn').classList.toggle('hidden', !isLoggedIn);
+            document.getElementById('btnDeleteHistory').classList.toggle('hidden', !isLoggedIn);
+            document.getElementById('btnDeleteAllHistory').classList.toggle('hidden', !isLoggedIn); // Ẩn/Hiện nút xóa hết
+            
+            if(isLoggedIn) {
+                text.innerText = "Quản trị viên";
+                btn.innerHTML = "<i class='fa-solid fa-right-from-bracket'></i> Đăng xuất";
+                document.getElementById('meetingMinutes').removeAttribute('disabled');
+                thActions.classList.remove('hidden');
+                memberForm.classList.remove('hidden');
+                if(originalMembers.length === 0) document.getElementById('btnInitData').classList.remove('hidden');
+            } else {
+                text.innerText = "Khách Xem";
+                btn.innerHTML = "<i class='fa-solid fa-right-to-bracket'></i> Đăng nhập";
+                document.getElementById('meetingMinutes').setAttribute('disabled', 'true');
+                thActions.classList.add('hidden');
+                memberForm.classList.add('hidden');
+                document.getElementById('btnInitData').classList.add('hidden');
+            }
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById('content-' + tabName).classList.remove('hidden');
+            document.querySelectorAll('.tab-btn').forEach(b => b.className = "tab-btn flex-1 min-w-[120px] py-2.5 rounded-lg text-sm font-bold transition flex items-center justify-center gap-2 text-slate-400 hover:bg-slate-800 hover:text-slate-200");
+            document.getElementById('tab-' + tabName).className = "tab-btn flex-1 min-w-[120px] py-2.5 rounded-lg text-sm font-bold transition flex items-center justify-center gap-2 bg-blue-600 text-white";
+        }
+
+        function exportAllFirebaseToExcel() {
+            let sortedDates = Object.keys(attendanceDataGlobal).sort();
+            let headerRow = ["STT", "HỌ VÀ TÊN", "Năm sinh", "Tổng số buổi", "Vắng (K)", "Phép (P)"];
+            sortedDates.forEach(d => {
+                if (attendanceDataGlobal[d] && Object.keys(attendanceDataGlobal[d]).length > 0) {
+                    headerRow.push(d);
+                }
+            }); 
+
+            let excelRows = [
+                ["DANH SÁCH ĐOÀN VIÊN XÃ ĐỨC QUANG"],
+                ["Chi đoàn thôn Tiến Hòa"],
+                [],
+                headerRow
+            ];
+
+            originalMembers.forEach((m, idx) => {
+                let stats = getMemberStats(m.id);
+                let rowData = [idx + 1, m.name, m.birthYear, stats.total, stats.k, stats.p];
+                
+                sortedDates.forEach(date => {
+                    if (attendanceDataGlobal[date] && Object.keys(attendanceDataGlobal[date]).length > 0) {
+                        let status = attendanceDataGlobal[date][m.id] || "X";
+                        rowData.push(status);
+                    }
+                });
+                excelRows.push(rowData);
+            });
+
+            const ws = XLSX.utils.aoa_to_sheet(excelRows);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Chi Đoàn Tiến Hòa");
+            XLSX.writeFile(wb, `Danhsachdoanvientienhoa_Firebase.xlsx`);
+        }
+    </script>
+</body>
+</html>
