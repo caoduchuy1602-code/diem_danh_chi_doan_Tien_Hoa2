@@ -1,234 +1,1398 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hệ Thống Quản Lý Chi Đoàn Tiến Hòa (Bảo Mật Cao Nhất)</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
+<html lang="vi" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      Sổ Điện Tử Điểm Danh Chi Đoàn Tiến Hòa - Phiên Bản Đặc Biệt Hoàn Hảo
+    </title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
 
     <style>
-        body { background-color: #0b1329; }
-        .dark-card { background-color: #1c2541; border-color: #3a506b; }
-        .dark-input { background-color: #1c2541; border-color: #3a506b; color: #ffffff; }
-        .dark-input:focus { border-color: #5bc0be; }
-        .loading-overlay { background: rgba(11, 19, 41, 0.9); }
+      /* --- ĐỊNH NGHĨA HỆ THỐNG BIẾN TOÀN CỤC TOÀN DIỆN (THEME VARIABLES) --- */
+      :root {
+        --bg-base: #f1f5f9;
+        --bg-container: rgba(255, 255, 255, 0.85);
+        --bg-card: #ffffff;
+        --bg-input: #f8fafc;
+        --text-primary: #0f172a;
+        --text-secondary: #63738a;
+        --text-muted: #64748b;
+        --border-main: #cbd5e1;
+        --border-light: #e2e8f0;
+        --color-primary: #2563eb;
+        --color-primary-hover: #1d4ed8;
+        --color-primary-rgb: 37, 99, 235;
+        --color-success: #10b981;
+        --color-success-hover: #059669;
+        --color-warning: #f59e0b;
+        --color-warning-hover: #d97706;
+        --color-danger: #ef4444;
+        --color-danger-hover: #dc2626;
+        --color-purple: #8b5cf6;
+        --color-purple-hover: #7c3aed;
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow-md:
+          0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-lg:
+          0 10px 15px -3px rgba(0, 0, 0, 0.1),
+          0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --shadow-xl:
+          0 20px 25px -5px rgba(0, 0, 0, 0.1),
+          0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.06);
+        --radius-sm: 8px;
+        --radius-md: 12px;
+        --radius-lg: 18px;
+        --radius-xl: 26px;
+        --blur-strength: 16px;
+        --transition-fast: 0.15s ease;
+        --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      [data-theme="dark"] {
+        --bg-base: #020617;
+        --bg-container: rgba(15, 23, 42, 0.8);
+        --bg-card: #1e293b;
+        --bg-input: #0f172a;
+        --text-primary: #f8fafc;
+        --text-secondary: #cbd5e1;
+        --text-muted: #94a3b8;
+        --border-main: #475569;
+        --border-light: #334155;
+        --color-primary: #3b82f6;
+        --color-primary-hover: #60a5fa;
+        --color-primary-rgb: 59, 130, 246;
+        --color-success: #34d399;
+        --color-success-hover: #10b981;
+        --color-warning: #fbbf24;
+        --color-warning-hover: #f59e0b;
+        --color-danger: #f87171;
+        --color-danger-hover: #ef4444;
+        --color-purple: #a78bfa;
+        --color-purple-hover: #8b5cf6;
+        --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+      }
+
+      /* --- KIỂU DÁNG MẶC ĐỊNH TOÀN TRANG (BASE RESETS) --- */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family:
+          "Inter",
+          system-ui,
+          -apple-system,
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      body {
+        background-color: var(--bg-base);
+        color: var(--text-primary);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        overflow-x: hidden;
+        transition:
+          background-color var(--transition-normal),
+          color var(--transition-normal);
+      }
+
+      /* --- BANNER PREMIUM ULTRA HD GRAPHICS (Tách biệt 3 dòng rõ ràng) --- */
+      .premium-banner-wrapper {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        box-shadow: var(--shadow-xl);
+      }
+
+      /* Hàng 1: Khu vực ảnh bìa thuần túy */
+      .premium-banner {
+        position: relative;
+        width: 100%;
+        height: 260px;
+        background-image: url("https://images.unsplash.com/photo-1543269865-cbf427effbad?auto=format&fit=crop&w=1920&q=100");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        transition: background-image var(--transition-normal);
+      }
+
+      .premium-banner::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(
+          180deg,
+          rgba(0, 0, 0, 0.1) 0%,
+          rgba(0, 0, 0, 0.4) 100%
+        );
+        z-index: 1;
+      }
+
+      /* Nút đổi giao diện & Đăng nhập nằm gọn góc trên phải của Ảnh bìa */
+      .banner-top-right-cluster {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        display: flex;
+        gap: 12px;
+        z-index: 12;
+      }
+
+      /* Nút Thay đổi ảnh nền/logo thu gọn đưa vào góc dưới phải của ảnh bìa */
+      .banner-media-controls {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        display: none;
+        gap: 12px;
+        z-index: 10;
+      }
+
+      /* Hàng 2: Khung chứa Logo, Tiêu đề chính lớn và Thông tin */
+      .banner-identity-row {
+        background-color: var(--bg-card);
+        border-bottom: 1px solid var(--border-light);
+        padding: 24px;
+        transition: background-color var(--transition-normal);
+      }
+
+      .banner-container {
+        width: 100%;
+        max-width: 1300px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        gap: 24px;
+      }
+
+      /* === CHỈNH SỬA LOGO ĐOÀN LỚN HƠN === */
+      .logo-wrapper {
+        position: relative;
+        width: 140px; /* Tăng từ 100px lên 140px */
+        height: 140px; /* Tăng từ 100px lên 140px */
+        flex-shrink: 0;
+      }
+
+      .logo-main {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid var(--border-main); /* Tăng viền dày lên tí nhìn cho chất lượng */
+        background-color: #ffffff;
+        box-shadow: var(--shadow-lg);
+        transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        cursor: pointer;
+      }
+
+      .logo-main:hover {
+        transform: rotate(360deg) scale(1.05);
+      }
+
+      .banner-text h1 {
+        color: var(--text-primary);
+        font-size: 2rem;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        text-transform: uppercase;
+      }
+
+      .banner-text p {
+        color: var(--text-secondary);
+        font-size: 1.05rem;
+        margin-top: 6px;
+        font-weight: 400;
+      }
+
+      /* Hàng 3: Thanh trạng thái màu tối hệ thống chuyển xuống dưới cùng */
+      .status-header-bar {
+        background-color: #0f172a;
+        padding: 14px 24px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      [data-theme="dark"] .status-header-bar {
+        background-color: #1e293b;
+      }
+
+      .badge-role {
+        padding: 8px 20px;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: var(--shadow-sm);
+      }
+
+      /* --- HỆ THỐNG NÚT BẤM (BUTTON ARCHITECTURE) --- */
+      .btn-core {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        border-radius: var(--radius-md);
+        border: 1px solid transparent;
+        cursor: pointer;
+        white-space: nowrap;
+        user-select: none;
+        transition: all var(--transition-fast);
+      }
+
+      .btn-core:active {
+        transform: scale(0.97);
+      }
+
+      .btn-banner-action {
+        background: rgba(15, 23, 42, 0.7);
+        color: #ffffff;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+      }
+
+      .btn-banner-action:hover {
+        background: var(--color-primary);
+        border-color: transparent;
+        box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.3);
+      }
+
+      .btn-banner-danger {
+        background: rgba(239, 68, 68, 0.85);
+        color: #ffffff;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+      }
+
+      .btn-banner-danger:hover {
+        background: var(--color-danger-hover);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+      }
+
+      .btn-primary {
+        background-color: var(--color-primary);
+        color: #ffffff;
+      }
+      .btn-primary:hover {
+        background-color: var(--color-primary-hover);
+      }
+
+      .btn-success {
+        background-color: var(--color-success);
+        color: #ffffff;
+      }
+      .btn-success:hover {
+        background-color: var(--color-success-hover);
+      }
+
+      .btn-warning {
+        background-color: var(--color-warning);
+        color: #ffffff;
+      }
+      .btn-warning:hover {
+        background-color: var(--color-warning-hover);
+      }
+
+      .btn-danger {
+        background-color: var(--color-danger);
+        color: #ffffff;
+      }
+      .btn-danger:hover {
+        background-color: var(--color-danger-hover);
+      }
+
+      .btn-purple {
+        background-color: var(--color-purple);
+        color: #ffffff;
+      }
+      .btn-purple:hover {
+        background-color: var(--color-purple-hover);
+      }
+
+      .btn-secondary {
+        background-color: var(--bg-card);
+        color: var(--text-primary);
+        border: 1px solid var(--border-main);
+      }
+      .btn-secondary:hover {
+        background-color: var(--bg-input);
+      }
+
+      .btn-disabled-style {
+        background-color: #94a3b8 !important;
+        color: #cbd5e1 !important;
+        cursor: not-allowed !important;
+        opacity: 0.65 !important;
+        box-shadow: none !important;
+        transform: none !important;
+      }
+
+      /* --- KHUNG CONTAINER TRUNG TÂM (MAIN APPARATUS) --- */
+      .app-container {
+        width: 95%;
+        max-width: 1300px;
+        margin: 40px auto 60px auto;
+        position: relative;
+        background-color: var(--bg-container);
+        backdrop-filter: blur(var(--blur-strength));
+        -webkit-backdrop-filter: blur(var(--blur-strength));
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: var(--radius-xl);
+        padding: 40px;
+        box-shadow: var(--shadow-xl), var(--shadow-glass);
+        z-index: 5;
+      }
+
+      /* --- HỆ THỐNG MENU TAB PHÂN CHIA 3 MỤC RIÊNG BIỆT --- */
+      .navigation-tabs-container {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 25px;
+        border-bottom: 2px solid var(--border-light);
+        padding-bottom: 10px;
+      }
+
+      .tab-trigger-btn {
+        padding: 12px 24px;
+        font-size: 0.95rem;
+        font-weight: 700;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border-main);
+        background-color: var(--bg-card);
+        color: var(--text-secondary);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all var(--transition-fast);
+      }
+
+      .tab-trigger-btn:hover {
+        background-color: var(--bg-input);
+        color: var(--color-primary);
+      }
+
+      .tab-trigger-btn.tab-state-active {
+        background-color: var(--color-primary);
+        color: #ffffff;
+        border-color: transparent;
+        box-shadow: var(--shadow-md);
+      }
+
+      .app-functional-section-view {
+        display: none;
+      }
+
+      .app-functional-section-view.section-state-visible {
+        display: block;
+      }
+
+      /* --- BẢNG ĐIỀU KHIỂN & BỘ LỌC (MANAGEMENT DASHBOARD CONTROL) --- */
+      .dashboard-control-deck {
+        background-color: var(--bg-card);
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 20px;
+        align-items: flex-end;
+        border: 1px solid var(--border-light);
+        margin-bottom: 35px;
+        box-shadow: var(--shadow-sm);
+      }
+
+      .deck-field {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .deck-field label {
+        font-weight: 700;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .input-premium {
+        padding: 12px 16px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border-main);
+        background-color: var(--bg-input);
+        color: var(--text-primary);
+        font-weight: 600;
+        font-size: 0.95rem;
+        outline: none;
+        width: 100%;
+        transition:
+          border-color var(--transition-fast),
+          box-shadow var(--transition-fast);
+      }
+
+      .input-premium:focus {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.15);
+      }
+
+      .deck-actions-cluster {
+        grid-column: 1 / -1;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        border-top: 1px solid var(--border-light);
+        padding-top: 18px;
+        margin-top: 4px;
+      }
+
+      /* --- PHÂN HỆ QUẢN TRỊ VIÊN ĐỘC LẬP TÁCH BIỆT TRỰC QUAN (CRUD SYSTEM) --- */
+      .crud-isolated-section {
+        background-color: var(--bg-card);
+        border: 2px solid var(--color-primary);
+        border-radius: var(--radius-lg);
+        padding: 30px;
+        margin-bottom: 35px;
+        box-shadow: var(--shadow-lg);
+      }
+
+      .crud-section-title {
+        margin-bottom: 20px;
+        font-size: 1.25rem;
+        color: var(--color-primary);
+        font-weight: 800;
+        border-bottom: 2px solid var(--border-light);
+        padding-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .crud-form-layout {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        background-color: var(--bg-input);
+        padding: 20px;
+        border-radius: var(--radius-md);
+        margin-bottom: 24px;
+        border: 1px dashed var(--border-main);
+        align-items: flex-end;
+      }
+
+      .crud-table-wrapper {
+        max-height: 450px;
+        overflow-y: auto;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border-main);
+        box-shadow: var(--shadow-sm);
+      }
+
+      /* --- KHỐI THÀNH PHẦN THỐNG KÊ NHANH (METRIC GRID) --- */
+      .metric-cards-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+        margin-bottom: 35px;
+      }
+
+      .metric-box {
+        background-color: var(--bg-card);
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        text-align: center;
+        font-weight: 700;
+        border: 1px solid var(--border-light);
+        box-shadow: var(--shadow-md);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .metric-box::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 6px;
+        height: 100%;
+      }
+      .metric-total::before {
+        background-color: var(--color-primary);
+      }
+      .metric-x::before {
+        background-color: var(--color-success);
+      }
+      .metric-p::before {
+        background-color: var(--color-warning);
+      }
+      .metric-k::before {
+        background-color: var(--color-danger);
+      }
+
+      .metric-box p {
+        margin: 0;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+      }
+
+      .metric-box span {
+        display: block;
+        font-size: 2.3rem;
+        margin-top: 8px;
+        font-weight: 800;
+        line-height: 1;
+      }
+      .text-total {
+        color: var(--color-primary);
+      }
+      .text-x {
+        color: var(--color-success);
+      }
+      .text-p {
+        color: var(--color-warning);
+      }
+      .text-k {
+        color: var(--color-danger);
+      }
+
+      /* --- THANH TÁC VỤ NHANH CHO ADMIN CHỈNH SỬA ẨN/HIỆN THÔNG MINH --- */
+      .admin-quick-toolbar {
+        display: none; /* Điều khiển hiển thị linh hoạt qua JS */
+        justify-content: flex-start;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 24px;
+        background-color: rgba(37, 99, 235, 0.05);
+        padding: 16px 24px;
+        border-radius: var(--radius-md);
+        border: 1px dashed var(--color-primary);
+        animation: fadeInToolbar 0.25s ease-in-out;
+      }
+
+      @keyframes fadeInToolbar {
+        from {
+          opacity: 0;
+          transform: translateY(-8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .toolbar-title {
+        font-weight: 800;
+        font-size: 0.85rem;
+        color: var(--color-primary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      /* --- KIẾN TRÚC BẢNG BIỂU SIÊU CẤU TRÚC (DATATABLE SYSTEM) --- */
+      .responsive-table-holder {
+        overflow-x: auto;
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border-main);
+        box-shadow: var(--shadow-md);
+        margin-bottom: 35px;
+        background-color: var(--bg-card);
+      }
+
+      .structural-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        text-align: center;
+      }
+
+      .structural-table th {
+        background-color: var(--color-primary);
+        color: #ffffff;
+        font-weight: 700;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 18px 20px;
+        border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+      }
+
+      .structural-table td {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border-light);
+        color: var(--text-primary);
+        font-size: 0.95rem;
+        vertical-align: middle;
+        transition: background-color var(--transition-fast);
+      }
+
+      .structural-table tbody tr:last-child td {
+        border-bottom: none;
+      }
+
+      .structural-table tbody tr:nth-child(even) {
+        background-color: var(--bg-input);
+      }
+
+      /* LOGIC ĐIỀU CHỈNH CHỌN DÒNG (HIGHLIGHT ROW) */
+      .structural-table tbody tr.row-state-highlighted {
+        background-color: rgba(var(--color-primary-rgb), 0.12) !important;
+        font-weight: 600;
+      }
+
+      .structural-table tbody tr:hover {
+        background-color: rgba(var(--color-primary-rgb), 0.03);
+      }
+
+      /* Cột tiêu đề chứa hộp kiểm Master Chọn Dòng */
+      .master-select-header {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .master-select-header input[type="checkbox"],
+      .row-individual-selector {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        accent-color: var(--color-primary);
+      }
+
+      /* Hộp kiểm lựa chọn điểm danh */
+      .attendance-checkbox-cluster {
+        display: flex;
+        justify-content: center;
+        gap: 24px;
+      }
+
+      .attendance-label-node {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        font-weight: 700;
+        font-size: 1.05rem;
+        user-select: none;
+      }
+
+      .attendance-label-node input[type="checkbox"] {
+        width: 22px;
+        height: 22px;
+        cursor: pointer;
+        border-radius: var(--radius-sm);
+      }
+
+      .node-x input {
+        accent-color: var(--color-success);
+      }
+      .node-p input {
+        accent-color: var(--color-warning);
+      }
+      .node-k input {
+        accent-color: var(--color-danger);
+      }
+
+      /* Trạng thái khóa bảng khi chưa đăng nhập */
+      .table-lock-state {
+        pointer-events: none;
+        opacity: 0.9;
+      }
+
+      /* --- TIỆN ÍCH THỐNG KÊ LỌC THEO LỊCH (ADVANCED STATISTICS PANEL) --- */
+      .widget-panel-block {
+        background-color: var(--bg-card);
+        border-radius: var(--radius-lg);
+        padding: 32px;
+        margin-top: 10px;
+        border: 1px solid var(--border-light);
+        border-left: 6px solid var(--color-purple);
+        box-shadow: var(--shadow-md);
+      }
+
+      .widget-panel-header {
+        color: var(--color-purple);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 20px;
+      }
+
+      .widget-panel-header h3 {
+        font-weight: 800;
+        font-size: 1.3rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .widget-description {
+        margin-bottom: 20px;
+        line-height: 1.6;
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+      }
+
+      /* --- POP-UP MODAL TRUNG TÂM TUYỆT ĐỐI (CENTRAL DIALOG SYSTEM) --- */
+      .modal-super-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(15, 23, 42, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 99999;
+        opacity: 0;
+        pointer-events: none;
+        transition: all var(--transition-normal);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+      }
+
+      .modal-super-overlay.overlay-active {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .modal-vault-card {
+        background-color: var(--bg-card);
+        padding: 40px;
+        border-radius: var(--radius-xl);
+        max-width: 500px;
+        width: 90%;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+        text-align: center;
+        border: 1px solid var(--border-main);
+        transform: scale(0.9);
+        transition: transform var(--transition-normal);
+      }
+
+      .modal-super-overlay.overlay-active .modal-vault-card {
+        transform: scale(1);
+      }
+
+      .modal-vault-card h3 {
+        margin-bottom: 20px;
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: var(--color-primary);
+        text-transform: uppercase;
+      }
+
+      .zalo-communication-box {
+        background-color: rgba(37, 99, 235, 0.08);
+        color: #1e40af;
+        padding: 16px;
+        border-radius: var(--radius-md);
+        font-weight: 700;
+        font-size: 0.95rem;
+        margin-top: 24px;
+        border: 1px dashed var(--color-primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        line-height: 1.5;
+      }
+
+      /* --- CHÂN TRANG THƯƠNG HIỆU TÁC GIẢ YÊU CẦU --- */
+      .footer-brand-signature {
+        text-align: center;
+        padding: 35px 0 10px 0;
+        margin-top: 50px;
+        border-top: 1px solid var(--border-light);
+        font-weight: 700;
+        color: var(--text-muted);
+        letter-spacing: 0.8px;
+        font-size: 0.9rem;
+      }
+
+      /* --- ĐÁP ỨNG THIẾT BỊ DI ĐỘNG (RESPONSIVE GRID) --- */
+      @media (max-width: 992px) {
+        .metric-cards-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+
+      @media (max-width: 768px) {
+        .premium-banner {
+          height: 180px;
+        }
+        .banner-container {
+          flex-direction: column;
+          text-align: center;
+          gap: 16px;
+        }
+        /* Phù hợp mobile */
+        .logo-wrapper {
+          width: 110px;
+          height: 110px;
+        }
+        .banner-text h1 {
+          font-size: 1.4rem;
+        }
+        .banner-text p {
+          font-size: 0.95rem;
+        }
+        .app-container {
+          padding: 24px 16px;
+          border-radius: var(--radius-lg);
+        }
+        .metric-cards-grid {
+          gap: 12px;
+        }
+        .metric-box {
+          padding: 16px;
+        }
+        .metric-box span {
+          font-size: 1.8rem;
+        }
+        .attendance-checkbox-cluster {
+          gap: 12px;
+        }
+        .structural-table th,
+        .structural-table td {
+          padding: 12px 10px;
+          font-size: 0.85rem;
+        }
+        .navigation-tabs-container {
+          flex-direction: column;
+          gap: 6px;
+        }
+      }
     </style>
-</head>
-<body class="text-slate-200 font-sans min-h-screen pb-12">
+  </head>
+  <body>
+    <div class="premium-banner-wrapper">
+      <div class="premium-banner" id="domSystemBanner">
+        <div class="banner-top-right-cluster">
+          <button
+            class="btn-core btn-banner-action"
+            onclick="triggerToggleTheme()"
+          >
+            <i class="fa-solid fa-circle-half-stroke"></i> Giao diện
+          </button>
+          <button
+            class="btn-core btn-banner-danger"
+            id="btnAuthTrigger"
+            onclick="openAuthenticationDialog()"
+          >
+            <i class="fa-solid fa-key"></i> Đăng Nhập Admin
+          </button>
+        </div>
 
-    <div id="loadingOverlay" class="fixed inset-0 loading-overlay z-50 flex flex-col items-center justify-center transition-all duration-300">
-        <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-        <p class="text-sm font-semibold text-slate-300 mt-4 tracking-wide"></p>
+        <div class="banner-media-controls" id="adminMediaPanel">
+          <button
+            class="btn-core btn-banner-action"
+            onclick="invokeMediaDialog('banner')"
+          >
+            <i class="fa-solid fa-image"></i> Thay Ảnh Bìa
+          </button>
+          <button
+            class="btn-core btn-banner-action"
+            onclick="invokeMediaDialog('logo')"
+          >
+            <i class="fa-solid fa-circle-user"></i> Thay Logo Đoàn
+          </button>
+        </div>
+      </div>
+
+      <div class="banner-identity-row">
+        <div class="banner-container">
+          <div class="logo-wrapper">
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/a/a2/Logo_Doan_Thanh_nien_Cong_san_Ho_Chi_Minh.svg"
+              class="logo-main"
+              id="domSystemLogo"
+              onclick="if (stateIsAdminMode) invokeMediaDialog('logo');"
+              title="Nhấp để thay logo (Yêu cầu quyền Admin)"
+            />
+          </div>
+          <div class="banner-text">
+            <h1>Sổ Điện Tử Điểm Danh Chi Đoàn Tiến Hòa</h1>
+            <p>
+              Hệ thống tự động hóa điểm danh & Số hóa dữ liệu chi đoàn nâng cao
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="status-header-bar">
+        <span
+          id="txtRoleBadge"
+          class="badge-role"
+          style="background-color: #64748b; color: #ffffff"
+        >
+          <i class="fa-solid fa-lock"></i> Vui lòng đăng nhập để quản lý
+        </span>
+      </div>
     </div>
 
-    <header id="mainBanner" class="relative bg-gradient-to-r from-blue-900 to-slate-900 py-6 px-8 border-b border-slate-700 shadow-xl overflow-hidden bg-cover bg-center">
-        <div class="absolute inset-0 bg-slate-950/70 z-0"></div>
-        
-        <div class="relative max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 z-10">
-            <div>
-                <p class="text-xs text-emerald-400 font-bold uppercase tracking-widest flex items-center gap-1.5">
-                    <i class="fa-solid fa-cloud"></i> 
-                </p>
-                <h1 class="text-3xl font-black text-white tracking-tight mt-1">CHI ĐOÀN TIẾN HÒA</h1>
-                <p class="text-xs text-slate-400 mt-1">Điểm Danh Đoàn Viên</p>
-            </div>
-            
-            <div class="flex items-center gap-2 flex-wrap">
-                <button id="roleBtn" class="bg-slate-700/40 text-slate-400 border border-slate-600/40 text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5">
-                    <span id="roleText">Khách Xem</span>
-                </button>
-                <button onclick="changeAdminPassword()" id="changePwdBtn" class="hidden bg-amber-600/20 hover:bg-amber-600 text-amber-400 hover:text-white border border-amber-500/30 text-xs font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow-md">
-                    <i class="fa-solid fa-key"></i> Đổi mật khẩu
-                </button>
-                <button onclick="toggleAuth()" id="authBtn" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow-md">
-                    <i class="fa-solid fa-right-to-bracket"></i> Đăng nhập
-                </button>
-                <button id="changeBgBtn" onclick="changeBannerBackground()" class="hidden bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-image"></i> Đổi hình nền
-                </button>
-            </div>
-        </div>
-    </header>
+    <div class="app-container">
+      <div class="navigation-tabs-container">
+        <button
+          class="tab-trigger-btn tab-state-active"
+          id="tabBtnAttendance"
+          onclick="switchSystemTab('attendance')"
+        >
+          <i class="fa-solid fa-calendar-days"></i> 1. Mục Điểm Danh
+        </button>
+        <button
+          class="tab-trigger-btn"
+          id="tabBtnStats"
+          onclick="switchSystemTab('stats')"
+        >
+          <i class="fa-solid fa-chart-line"></i> 2. Mục Thống Kê Tổng Hợp
+        </button>
+        <button
+          class="tab-trigger-btn"
+          id="tabBtnCrud"
+          onclick="switchSystemTab('crud')"
+        >
+          <i class="fa-solid fa-users-gear"></i> 3. Mục Sửa Thành Viên
+        </button>
+      </div>
 
-    <div class="max-w-7xl mx-auto px-6 mt-6">
-        <div class="flex bg-[#1c2541] p-1.5 rounded-xl border border-slate-700 gap-1 overflow-x-auto">
-            <button onclick="switchTab('diem-danh')" id="tab-diem-danh" class="tab-btn flex-1 min-w-[120px] py-2.5 rounded-lg text-sm font-bold transition flex items-center justify-center gap-2 bg-blue-600 text-white">
-                <i class="fa-solid fa-calendar-check"></i> Điểm danh hàng ngày
+      <div
+        id="sectionAttendance"
+        class="app-functional-section-view section-state-visible"
+      >
+        <div class="dashboard-control-deck">
+          <div class="deck-field" style="grid-column: 1 / -1">
+            <label
+              ><i class="fa-solid fa-calendar-check"></i> Ngày sinh hoạt & Tác
+              vụ hệ thống:</label
+            >
+            <div
+              style="
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+                align-items: center;
+                width: 100%;
+              "
+            >
+              <input
+                type="date"
+                id="ctrlAttendanceDate"
+                class="input-premium"
+                style="max-width: 180px"
+                onchange="actionLoadDateAttendance()"
+              />
+              <button
+                class="btn-core btn-danger"
+                style="padding: 12px 16px"
+                onclick="crudExecuteDeleteEntireDateHistory()"
+              >
+                <i class="fa-solid fa-calendar-xmark"></i> Xóa Nhật Ký Hôm Nay
+              </button>
+              <button
+                class="btn-core btn-danger"
+                style="padding: 12px 16px; background-color: #b91c1c"
+                onclick="systemClearAllDatabaseVault()"
+              >
+                <i class="fa-solid fa-trash-can"></i> Xóa Tất Cả Dữ Liệu
+              </button>
+              <button
+                class="btn-core btn-success"
+                style="padding: 12px 16px"
+                onclick="systemRestoreAllDatabaseVault()"
+              >
+                <i class="fa-solid fa-clock-rotate-left"></i> Khôi Phục Tất Cả
+                Dữ Liệu Đã Xoá
+              </button>
+            </div>
+          </div>
+          <div class="deck-field">
+            <label
+              ><i class="fa-solid fa-magnifying-glass"></i> Tìm nhanh họ
+              tên:</label
+            >
+            <input
+              type="text"
+              id="ctrlSearchBox"
+              class="input-premium"
+              placeholder="Nhập tên đoàn viên cần tìm..."
+              oninput="actionApplyTableFilters()"
+            />
+          </div>
+          <div class="deck-field" style="max-width: 220px">
+            <label
+              ><i class="fa-solid fa-sliders"></i> Lọc theo trạng thái:</label
+            >
+            <select
+              id="ctrlStatusFilter"
+              class="input-premium"
+              onchange="actionApplyTableFilters()"
+            >
+              <option value="ALL">Hiện toàn bộ danh sách</option>
+              <option value="X">Tham Gia (X)</option>
+              <option value="P">Có Phép (P)</option>
+              <option value="K">Không Phép (K)</option>
+              <option value="EMPTY">Chưa được tích chọn</option>
+            </select>
+          </div>
+
+          <div class="deck-actions-cluster">
+            <button
+              class="btn-core btn-primary"
+              onclick="actionExportSingleDayExcel()"
+            >
+              <i class="fa-solid fa-file-excel"></i> Xuất Excel Hôm Hôm Nay ↓
             </button>
-            <button onclick="switchTab('thong-ke')" id="tab-thong-ke" class="tab-btn flex-1 min-w-[120px] py-2.5 rounded-lg text-sm font-bold transition flex items-center justify-center gap-2 text-slate-400 hover:bg-slate-800 hover:text-slate-200">
-                <i class="fa-solid fa-chart-simple"></i> Thống kê 
+            <button
+              class="btn-core btn-warning"
+              onclick="actionExportComprehensiveReport()"
+            >
+              <i class="fa-solid fa-chart-pie"></i> Tải Báo Cáo Tổng Hợp 📊
             </button>
-            <button onclick="switchTab('doan-vien')" id="tab-doan-vien" class="tab-btn flex-1 min-w-[120px] py-2.5 rounded-lg text-sm font-bold transition flex items-center justify-center gap-2 text-slate-400 hover:bg-slate-800 hover:text-slate-200">
-                <i class="fa-solid fa-users"></i> Quản lý Đoàn viên
+
+            <div style="position: relative; display: inline-block">
+              <button
+                class="btn-core btn-success btn-disabled-style"
+                id="btnExcelMergeTrigger"
+                disabled
+                onclick="actionDirectSyncExcelReport()"
+              >
+                <i class="fa-solid fa-cloud-arrow-up"></i> Đồng Bộ Lên Excel ↑
+              </button>
+            </div>
+            <button
+              class="btn-core btn-purple"
+              id="btnPassModifyTrigger"
+              style="display: none"
+              onclick="openPasswordModificationDialog()"
+            >
+              <i class="fa-solid fa-lock-open"></i> Đổi Mật Khẩu Admin
             </button>
+          </div>
         </div>
+
+        <div class="admin-quick-toolbar" id="blockAdminQuickToolbar">
+          <span class="toolbar-title"
+            ><i class="fa-solid fa-bolt"></i> Thao tác nhanh hàng loạt:</span
+          >
+          <button
+            class="btn-core btn-success"
+            style="padding: 8px 16px; font-size: 0.85rem"
+            onclick="toolbarApplyStatusToSelected('X')"
+          >
+            Tham Gia (X)
+          </button>
+          <button
+            class="btn-core btn-warning"
+            style="padding: 8px 16px; font-size: 0.85rem"
+            onclick="toolbarApplyStatusToSelected('P')"
+          >
+            Có Phép (P)
+          </button>
+          <button
+            class="btn-core btn-danger"
+            style="padding: 8px 16px; font-size: 0.85rem"
+            onclick="toolbarApplyStatusToSelected('K')"
+          >
+            Không Phép (K)
+          </button>
+          <button
+            class="btn-core btn-secondary"
+            style="padding: 8px 16px; font-size: 0.85rem; margin-left: auto"
+            onclick="toolbarClearRowSelection()"
+          >
+            Hủy chọn hàng
+          </button>
+        </div>
+
+        <div class="metric-cards-grid">
+          <div class="metric-box metric-total">
+            <p>Sĩ Số Chi Đoàn</p>
+            <span id="domMetricTotal" class="text-total">0</span>
+          </div>
+          <div class="metric-box metric-x">
+            <p>Tham Gia (X)</p>
+            <span id="domMetricX" class="text-x">0</span>
+          </div>
+          <div class="metric-box metric-p">
+            <p>Có Phép (P)</p>
+            <span id="domMetricP" class="text-p">0</span>
+          </div>
+          <div class="metric-box metric-k">
+            <p>Không Phép (K)</p>
+            <span id="domMetricK" class="text-k">0</span>
+          </div>
+        </div>
+
+        <div class="responsive-table-holder">
+          <table
+            id="domMainAttendanceTable"
+            class="structural-table table-lock-state"
+          >
+            <thead>
+              <tr>
+                <th style="width: 15%">
+                  <div class="master-select-header">
+                    <input
+                      type="checkbox"
+                      id="domMasterRowCheckbox"
+                      onchange="tableToggleMasterRowSelect(this)"
+                    />
+                    <span>STT</span>
+                  </div>
+                </th>
+                <th style="width: 40%; text-align: left">
+                  <i class="fa-solid fa-id-card"></i> Họ và Tên Đoàn Viên
+                </th>
+                <th style="width: 15%">
+                  <i class="fa-solid fa-calendar-days"></i> Năm Sinh
+                </th>
+                <th style="width: 30%">
+                  <i class="fa-solid fa-check-to-slot"></i> Tích Chọn Điểm Danh
+                </th>
+              </tr>
+            </thead>
+            <tbody id="domMainTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="sectionStats" class="app-functional-section-view">
+        <div class="widget-panel-block">
+          <div class="widget-panel-header">
+            <h3>
+              <i class="fa-solid fa-chart-line"></i> BẢNG THỐNG KÊ CHI TIẾT LỊCH
+              SỬ THAM GIA
+            </h3>
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                color: var(--text-primary);
+                font-size: 0.95rem;
+              "
+            >
+              <label style="font-weight: 700"
+                ><i class="fa-solid fa-calendar-check"></i> Lọc theo
+                lịch:</label
+              >
+              <input
+                type="date"
+                id="ctrlHistoryStatsDatePicker"
+                class="input-premium"
+                style="padding: 6px 12px; width: 160px; line-height: 1"
+                onchange="statsRenderComprehensiveTable()"
+              />
+              <button
+                class="btn-core btn-secondary"
+                style="padding: 6px 12px; font-size: 0.85rem"
+                onclick="statsResetToAllDates()"
+              >
+                Cộng dồn tất cả
+              </button>
+            </div>
+          </div>
+          <div class="widget-description">
+            Dữ liệu thống kê hiển thị chính xác dựa trên thời gian đã chọn:
+            **Tham Gia / Phép / Không Phép / Tổng Buổi Đi** (Trong đó **Tổng
+            Buổi Đi** là tổng số ngày mà Chi đoàn thực tế có tổ chức sinh
+            hoạt/hoạt động).
+          </div>
+
+          <div class="responsive-table-holder" style="margin-bottom: 0">
+            <table
+              class="structural-table"
+              style="background-color: transparent"
+            >
+              <thead>
+                <tr style="background-color: var(--color-purple)">
+                  <th style="color: #ffffff; padding: 12px; width: 10%">STT</th>
+                  <th
+                    style="
+                      color: #ffffff;
+                      padding: 12px;
+                      text-align: left;
+                      width: 30%;
+                    "
+                  >
+                    Họ và Tên Đoàn Viên
+                  </th>
+                  <th style="color: #ffffff; padding: 12px; width: 15%">
+                    Tham Gia
+                  </th>
+                  <th style="color: #ffffff; padding: 12px; width: 15%">
+                    Phép
+                  </th>
+                  <th style="color: #ffffff; padding: 12px; width: 15%">
+                    Không Phép
+                  </th>
+                  <th style="color: #ffffff; padding: 12px; width: 15%">
+                    Tổng Buổi Đi
+                  </th>
+                </tr>
+              </thead>
+              <tbody id="domHistoryStatsTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div id="sectionCrud" class="app-functional-section-view">
+        <div class="crud-isolated-section" id="blockAdminCrudSection">
+          <div class="crud-section-title">
+            <i class="fa-solid fa-users-gear"></i> GIAO DIỆN QUẢN LÝ THÔNG TIN
+            ĐOÀN VIÊN & LỊCH HỌP
+          </div>
+
+          <div class="crud-form-layout">
+            <input type="hidden" id="formStateTargetStt" value="" />
+            <div style="flex-grow: 3; min-width: 200px">
+              <label
+                style="
+                  font-size: 0.8rem;
+                  font-weight: 700;
+                  color: var(--text-secondary);
+                  display: block;
+                  margin-bottom: 6px;
+                "
+                >HỌ VÀ TÊN ĐOÀN VIÊN:</label
+              >
+              <input
+                type="text"
+                id="formInputName"
+                class="input-premium"
+                placeholder="Nhập họ và tên đoàn viên mới..."
+              />
+            </div>
+            <div style="max-width: 160px; min-width: 100px">
+              <label
+                style="
+                  font-size: 0.8rem;
+                  font-weight: 700;
+                  color: var(--text-secondary);
+                  display: block;
+                  margin-bottom: 6px;
+                "
+                >NĂM SINH:</label
+              >
+              <input
+                type="number"
+                id="formInputYob"
+                class="input-premium"
+                value="2008"
+              />
+            </div>
+            <div style="display: flex; gap: 10px">
+              <button
+                class="btn-core btn-primary"
+                id="btnFormSubmitAction"
+                onclick="crudExecuteSaveMember()"
+              >
+                <i class="fa-solid fa-circle-plus"></i> Thêm Mới
+              </button>
+              <button
+                class="btn-core btn-secondary"
+                style="display: none"
+                id="btnFormCancelAction"
+                onclick="crudResetFormState()"
+              >
+                Hủy Sửa
+              </button>
+            </div>
+          </div>
+
+          <div class="crud-table-wrapper">
+            <table
+              class="structural-table"
+              style="background-color: transparent"
+            >
+              <thead>
+                <tr
+                  style="
+                    background-color: var(--border-main);
+                    color: var(--text-primary);
+                  "
+                >
+                  <th style="padding: 10px">STT</th>
+                  <th style="text-align: left; padding: 10px">
+                    Họ và Tên Đoàn Viên
+                  </th>
+                  <th style="padding: 10px">Năm Sinh</th>
+                  <th style="padding: 10px">Hành Động Hệ Thống</th>
+                </tr>
+              </thead>
+              <tbody id="domCrudTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="widget-panel-block"
+        style="border-left-color: var(--color-primary); margin-top: 30px"
+      >
+        <h3>
+          <i class="fa-solid fa-circle-info"></i> Sứ mệnh Số hóa Dữ liệu Chi
+          Đoàn Tiến Hòa
+        </h3>
+        <div
+          class="widget-description"
+          style="margin-bottom: 0; text-align: justify; margin-top: 10px"
+        >
+          Hệ thống quản lý điểm danh điện tử được thiết lập dựa trên tinh thần
+          đổi mới sáng tạo, nâng cao năng lực chuyển đổi số trong công tác Đoàn
+          và phong trào thanh thiếu nhi của Chi đoàn Thôn Tiến Hòa. Ứng dụng
+          giúp số hóa toàn diện quy trình theo dõi sĩ số, tự động hóa tính toán
+          báo cáo số liệu chuyên sâu và giảm thiểu các thao tác quản trị thủ
+          công, đóng góp tích cực vào mục tiêu xây dựng tổ chức Đoàn vững mạnh
+          xuất sắc.
+        </div>
+      </div>
+
+      <div class="footer-brand-signature">
+        HỆ THỐNG ĐƯỢC PHÁT TRIỂN & THIẾT KẾ BỞI ĐOÀN VIÊN:
+        <span style="color: var(--color-primary); font-weight: 800"
+          ><i class="fa-solid fa-code"></i> PHAN VIẾT HÀO</span
+        >
+      </div>
     </div>
 
-    <main class="max-w-7xl mx-auto px-6 mt-6">
-
-        <div id="content-diem-danh" class="tab-content space-y-6">
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div class="dark-card border p-4 rounded-xl flex justify-between items-center shadow-md">
-                    <div>
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Tổng số buổi hệ thống</p>
-                        <p id="totalMeetingsCount" class="text-3xl font-black text-blue-400 mt-1">0</p>
-                    </div>
-                    <div class="bg-blue-500/10 p-3 rounded-xl text-blue-400 text-xl"><i class="fa-solid fa-layer-group"></i></div>
-                </div>
-                <div class="dark-card border p-4 rounded-xl flex justify-between items-center shadow-md">
-                    <div>
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Hôm nay tham gia (X)</p>
-                        <p id="countX" class="text-3xl font-black text-emerald-400 mt-1">0</p>
-                    </div>
-                    <div class="bg-emerald-500/10 p-3 rounded-xl text-emerald-400 text-xl"><i class="fa-solid fa-circle-check"></i></div>
-                </div>
-                <div class="dark-card border p-4 rounded-xl flex justify-between items-center shadow-md">
-                    <div>
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Hôm nay Phép / Vắng (P/K)</p>
-                        <p id="countPK" class="text-3xl font-black text-amber-400 mt-1">0</p>
-                    </div>
-                    <div class="bg-amber-500/10 p-3 rounded-xl text-amber-400 text-xl"><i class="fa-solid fa-envelope-open-text"></i></div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-                <div class="flex gap-2 items-center w-full">
-                    <div class="relative flex-1">
-                        <i class="fa-solid fa-calendar absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                        <input type="date" id="attendanceDate" onchange="loadDataByDate()" class="dark-input w-full border rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition">
-                    </div>
-                    <button id="btnDeleteHistory" onclick="deleteAttendanceDayHistory()" class="hidden bg-rose-600/20 hover:bg-rose-600 text-rose-400 hover:text-white border border-rose-500/30 text-xs font-bold px-3 py-3 rounded-xl transition flex items-center justify-center gap-1.5 shadow-md h-full whitespace-nowrap" title="Xóa toàn bộ dữ liệu điểm danh của ngày này">
-                        <i class="fa-solid fa-trash-arrow-up"></i> Xóa ngày này
-                    </button>
-                </div>
-                <div class="relative md:col-span-2">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                    <input type="text" id="searchName" oninput="renderAttendanceTable()" placeholder="Tìm kiếm họ tên đoàn viên..." class="dark-input w-full border rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition">
-                </div>
-            </div>
-
-            <div class="dark-card border rounded-xl p-5 shadow-sm">
-                <div class="flex justify-between items-center mb-3">
-                    <h3 class="text-sm font-bold text-blue-400 uppercase tracking-wider flex items-center gap-2">
-                        <i class="fa-solid fa-file-signature"></i> Nội dung sinh hoạt ngày hôm nay
-                    </h3>
-                    <button id="btnSaveMinutes" onclick="saveMinutesFirebase()" class="hidden bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1 rounded-lg transition">Lưu biên bản</button>
-                </div>
-                <textarea id="meetingMinutes" rows="3" placeholder="Nhập tóm tắt chủ đề sinh hoạt ngày hôm nay..." class="dark-input w-full border rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition resize-none"></textarea>
-            </div>
-
-            <div class="dark-card border rounded-xl overflow-hidden shadow-xl">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-slate-800/60 border-b border-slate-700 text-slate-400 text-xs font-bold uppercase">
-                                <th class="py-3.5 px-6 text-center w-16">STT</th>
-                                <th class="py-3.5 px-6">Họ và tên Đoàn viên</th>
-                                <th class="py-3.5 px-6 text-center w-28">Năm sinh</th>
-                                <th class="py-3.5 px-4 text-center w-36 text-blue-400">Tổng số buổi</th>
-                                <th class="py-3.5 px-6 text-center w-64">Điểm danh hôm nay</th>
-                            </tr>
-                        </thead>
-                        <tbody id="attendanceTableBody" class="divide-y divide-slate-700/50 text-sm"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <div id="content-thong-ke" class="tab-content hidden space-y-4">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-2">
-                <div>
-                    <h2 class="text-lg font-bold text-white">Bảng Thống Kê Chuyên Cần </h2>
-                    <p class="text-xs text-slate-400">Dữ liệu tự động tính theo cấu trúc file danh sách chuẩn.</p>
-                </div>
-                <div class="flex items-center gap-2 self-stretch sm:self-auto">
-                    <button id="btnDeleteAllHistory" onclick="deleteAllAttendanceHistory()" class="hidden bg-rose-600/10 hover:bg-rose-600 text-rose-400 hover:text-white border border-rose-500/30 text-xs font-bold px-4 py-2 rounded-xl transition flex items-center gap-1.5 shadow-md">
-                        <i class="fa-solid fa-dumpster-fire"></i> Xóa hết lịch sử hệ thống
-                    </button>
-                    <button onclick="exportAllFirebaseToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition flex items-center gap-1.5 shadow-md">
-                        <i class="fa-solid fa-file-excel"></i> Xuất File Excel (.xlsx)
-                    </button>
-                </div>
-            </div>
-            
-            <div class="dark-card border rounded-xl overflow-hidden shadow-xl">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse text-center">
-                        <thead>
-                            <tr class="bg-slate-800/60 border-b border-slate-700 text-slate-400 text-xs font-bold uppercase">
-                                <th class="py-3.5 px-4 w-16">STT</th>
-                                <th class="py-3.5 px-6 text-left">Họ và tên Đoàn viên</th>
-                                <th class="py-3.5 px-4 w-24">Năm sinh</th>
-                                <th class="py-3.5 px-4 text-blue-400 font-bold w-36">Tổng số buổi</th>
-                                <th class="py-3.5 px-4 text-emerald-400 font-bold w-28">Tham gia (X)</th>
-                                <th class="py-3.5 px-4 text-amber-400 font-bold w-36">Phép (P)</th>
-                                <th class="py-3.5 px-4 text-rose-400 font-bold w-28">Vắng (K)</th>
-                            </tr>
-                        </thead>
-                        <tbody id="statsTableBody" class="divide-y divide-slate-700/50 text-sm"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <div id="content-doan-vien" class="tab-content hidden space-y-4">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                <div>
-                    <h2 class="text-lg font-bold text-white">Danh sách Chi đoàn Tiến Hòa</h2>
-                    <p class="text-xs text-slate-400">Quản lý, chỉnh sửa danh sách thành viên cốt cán của chi đoàn.</p>
-                </div>
-                <button id="btnInitData" onclick="initializeDefaultMembers()" class="hidden bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold px-3 py-2 rounded-lg transition">
-                    <i class="fa-solid fa-database"></i> Khởi tạo dữ liệu gốc 
-                </button>
-            </div>
-
-            <div id="memberFormContainer" class="hidden dark-card border p-4 rounded-xl shadow-lg space-y-3">
-                <h3 id="formTitle" class="text-sm font-bold text-blue-400 uppercase tracking-wider"><i class="fa-solid fa-user-plus"></i> Thêm Đoàn Viên Mới</h3>
-                <input type="hidden" id="editMemberId">
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div class="sm:col-span-2">
-                        <input type="text" id="inputMemberName" placeholder="Nhập họ và tên đoàn viên..." class="dark-input w-full border rounded-lg px-3 py-2 text-sm focus:outline-none">
-                    </div>
-                    <div>
-                        <input type="number" id="inputMemberYear" placeholder="Năm sinh..." class="dark-input w-full border rounded-lg px-3 py-2 text-sm focus:outline-none">
-                    </div>
-                </div>
-                <div class="flex justify-end gap-2">
-                    <button onclick="cancelMemberForm()" id="btnCancelEdit" class="hidden bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-bold px-3 py-2 rounded-lg transition">Hủy bỏ</button>
-                    <button onclick="saveMemberFirebase()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-lg transition">
-                        <i class="fa-solid fa-floppy-disk"></i> Lưu thông tin
-                    </button>
-                </div>
-            </div>
-
-            <div class="dark-card border rounded-xl overflow-hidden shadow-xl">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-slate-800/60 border-b border-slate-700 text-slate-400 text-xs font-bold uppercase">
-                                <th class="py-3.5 px-6 text-center w-16">STT</th>
-                                <th class="py-3.5 px-6">Họ và tên Đoàn viên</th>
-                                <th class="py-3.5 px-6 text-center w-36">Năm sinh</th>
-                                <th id="thActions" class="py-3.5 px-6 text-center w-40 hidden">Thao tác</th>
-                            </tr>
-                        </thead>
-                        <tbody id="membersTableBody" class="divide-y divide-slate-700/50 text-sm"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-    </main>
+    <div class="modal-super-overlay" id="domGlobalModalOverlay">
+      <div class="modal-vault-card" id="domGlobalModalCard"></div>
+    </div>
 
     <script>
-        // ⚠️ THAY THẾ CẤU HÌNH FIREBASE CỦA BẠN VÀO ĐÂY
-         const firebaseConfig = {
+       const firebaseConfig = {
   apiKey: "AIzaSyDSWXvmMAsLI5u1yvcjiv7M_IW0yet-UEg",
   authDomain: "diem-danh-tien-hoa.firebaseapp.com",
   databaseURL: "https://diem-danh-tien-hoa-default-rtdb.firebaseio.com",
@@ -236,469 +1400,1190 @@
   storageBucket: "diem-danh-tien-hoa.firebasestorage.app",
   messagingSenderId: "767668395362",
   appId: "1:767668395362:web:2f6846fa92be3725c7603b"
-};
-
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
-        let originalMembers = []; 
-        let attendanceDataGlobal = {}; 
-        let isLoggedIn = false;
-        let currentAdminPassword = "admin"; 
-
-        document.getElementById('attendanceDate').valueAsDate = new Date();
-
-        window.onload = function() {
-            loadBannerSettings();
-            startFirebaseRealtimeSync();
-        };
-
-        function loadBannerSettings() {
-            const savedBg = localStorage.getItem('tien_hoa_banner') || 'https://images.unsplash.com/photo-1517486808906-6ca8b3f04846';
-            document.getElementById('mainBanner').style.backgroundImage = `url('${savedBg}')`;
-        }
-
-        function changeBannerBackground() {
-            if(!isLoggedIn) return;
-            let newUrl = prompt("Nhập liên kết (URL) hình nền tập thể mới:");
-            if(newUrl && newUrl.trim() !== "") {
-                localStorage.setItem('tien_hoa_banner', newUrl);
-                loadBannerSettings();
-            }
-        }
-
-        function startFirebaseRealtimeSync() {
-            if(firebaseConfig.apiKey.includes("YOUR_API_KEY")) {
-                alert("Bạn chưa sửa thông tin cấu hình `firebaseConfig` ở khoảng dòng 154!");
-                document.getElementById('loadingOverlay').classList.add('hidden');
-                return;
-            }
-
-            db.ref('adminPassword').on('value', (snapshot) => {
-                if(snapshot.exists()) {
-                    currentAdminPassword = snapshot.val();
-                } else {
-                    db.ref('adminPassword').set("admin");
+};firebase.initializeApp(firebaseConfig);
+// Thêm đoạn này vào phần khởi tạo (bên dưới firebase.initializeApp)
+function listenToChanges(date) {
+    const ref = database.ref('diem_danh/' + date);
+    
+    ref.on('value', (snapshot) => {
+        const data = snapshot.val(); // Dữ liệu từ Firebase
+        if (data) {
+            // DUYỆT QUA DỮ LIỆU ĐỂ CẬP NHẬT UI
+            Object.keys(data).forEach(studentId => {
+                const status = data[studentId].trang_thai;
+                // Tìm ô checkbox/radio của học sinh đó và tick vào
+                const element = document.getElementById('status-' + studentId);
+                if (element) {
+                    element.value = status; 
+                    // Hoặc thực hiện các hàm đổi màu giao diện hiện có của bạn
                 }
             });
+        }
+    });
+} 
+  const db = firebase.database();
+      // DATA MODULE: DANH SÁCH GỐC KHỞI TẠO BAN ĐẦU CỦA 42 ĐOÀN VIÊN
+      const coreIdentityDataset = [
+        "Nguyễn Trần Thảo Nguyên",
+        "Trần Văn Sáng",
+        "Lê Minh Thiều",
+        "Kiều Đình Nam",
+        "Nguyễn Diệp Tú",
+        "Trần Hữu Thịnh",
+        "Hoàng Khánh Ngọc",
+        "Cao Đức Huy",
+        "Nguyễn Thị Quỳnh Nhi",
+        "Lê Nguyễn Minh Hằng",
+        "Lê Minh Đăng",
+        "Phạm Thị Thu Hiền",
+        "Nguyễn Anh Dũng",
+        "Nguyễn Hà Linh",
+        "Nguyễn Bảo Nam ",
+        "Nguyễn Lê Đăng Đán",
+        "Nguyễn Đức Huy",
+        "Đinh Gia Như",
+        "Lương Viết Dũng",
+        "Phan Viết Hào",
+        "Nguyễn Hoài Nam",
+        "Lương Viết Thành",
+        "Phan Khánh Linh",
+        "Nguyễn Tuấn Sang",
+        "Nguyễn Ngọc Ánh ",
+        "Nguyễn Hoàng Gia Bảo",
+        "Trần Anh Duy ",
+        "Vũ Uyên Ly",
+        "Đinh Phương Bắc",
+        "Lê Thảo My",
+        "Lê Trà My",
+        "Nguyễn Viết Đề",
+        "Nguyễn Đăng Duy",
+        "Nguyễn Thị Quỳnh Loan",
+        "Lê Minh Thắng",
+        "Nguyễn Bảo Thi",
+        "Trần Minh Hưng",
+        "Phạm Phương Vy",
+        "Nguyễn Anh Quốc",
+        "Bùi Mai Phương",
+        "Nguyễn Ngọc Hà",
+        "Nguyễn Thị Thanh Hòa",
+      ];
 
-            db.ref('members').on('value', (snapshot) => {
-                const data = snapshot.val();
-                originalMembers = [];
-                if(data) {
-                    for(let id in data) {
-                        originalMembers.push({ id: id, name: data[id].name, birthYear: data[id].birthYear });
-                    }
-                }
-                originalMembers.sort((a, b) => a.name.localeCompare(b.name, 'vi'));
-                
-                if(originalMembers.length === 0 && isLoggedIn) {
-                    document.getElementById('btnInitData').classList.remove('hidden');
-                } else {
-                    document.getElementById('btnInitData').classList.add('hidden');
-                }
+      // STATE MANAGEMENT: BIẾN TRẠNG THÁI TOÀN CỤC HỆ THỐNG
+      let globalActiveMembers = [];
+      let stateIsAdminMode = false;
+      let statePendingMediaChangeType = "";
 
-                renderMembersTable();
-                loadDataByDate();
-                renderStatsTable();
-                document.getElementById('loadingOverlay').classList.add('hidden');
-            });
+      // Đặt mặc định ngày hiện tại vào ô Input Lịch họp
+      document.getElementById("ctrlAttendanceDate").valueAsDate = new Date();
 
-            db.ref('attendance').on('value', (snapshot) => {
-                attendanceDataGlobal = snapshot.val() || {};
-                
-                let totalMeetings = Object.keys(attendanceDataGlobal).length;
-                document.getElementById('totalMeetingsCount').innerText = totalMeetings;
+      // HÀM KHỞI CHẠY CHÍNH KHI TRANG TẢI XONG (INITIALIZATION ENGINE)
+      window.addEventListener("DOMContentLoaded", () => {
+        // Đồng bộ và tải các thiết lập Media High-Resolution
+        const cachedBanner = localStorage.getItem("th_hq_system_banner");
+        const cachedLogo = localStorage.getItem("th_hq_system_logo");
+        if (cachedBanner)
+          document.getElementById("domSystemBanner").style.backgroundImage =
+            `url('${cachedBanner}')`;
+        if (cachedLogo)
+          document.getElementById("domSystemLogo").src = cachedLogo;
 
-                loadDataByDate();
-                renderStatsTable();
-            });
+        // Khởi tạo và nạp danh sách thực thể đoàn viên
+        if (localStorage.getItem("th_master_members_db_v3")) {
+          globalActiveMembers = JSON.parse(
+            localStorage.getItem("th_master_members_db_v3"),
+          );
+        } else {
+          let trackerYob = 2011;
+          globalActiveMembers = coreIdentityDataset.map((rawName, idx) => {
+            let cleanName = rawName.trim();
+            if (cleanName.includes("Cao Đức Huy")) trackerYob = 2010;
+            if (cleanName.includes("Nguyễn Lê Đăng Đán")) trackerYob = 2009;
+            if (cleanName.includes("Nguyễn Hoàng Gia Bảo")) trackerYob = 2008;
+            return { stt: idx + 1, name: cleanName, yob: trackerYob };
+          });
+          localStorage.setItem(
+            "th_master_members_db_v3",
+            JSON.stringify(globalActiveMembers),
+          );
         }
 
-        // HÀM XÓA TOÀN BỘ LỊCH SỬ CHUYÊN CẦN HỆ THỐNG
-        function deleteAllAttendanceHistory() {
-            if (!isLoggedIn) return;
-            
-            if (confirm("🚨 CẢNH BÁO NGUY HIỂM: Bạn có chắc chắn muốn XÓA SẠCH TOÀN BỘ lịch sử điểm danh và biên bản của tất cả các ngày từ trước tới nay không?")) {
-                if (confirm("Nhắc lại lần cuối: Hành động này sẽ làm trống hoàn toàn bảng thống kê lịch sử chuyên cần. Bạn vẫn muốn tiếp tục?")) {
-                    
-                    let checkPwd = prompt("Để thực hiện thao tác nhạy cảm này, vui lòng nhập lại mật khẩu Quản trị viên để xác nhận:");
-                    if (checkPwd !== currentAdminPassword) {
-                        alert("Mật khẩu xác nhận không chính xác! Hủy bỏ lệnh xóa.");
-                        return;
-                    }
+        // Hiện Pop-up chào mừng mang tính chuyên nghiệp định hướng an toàn
+        uiDisplayCenterDialog(
+          "HỆ THỐNG QUẢN LÝ ĐIỂM DANH",
+          "Trân trọng chào mừng đồng chí đến với Sổ Điện Tử Điểm Danh Chi Đoàn Tiến Hòa – nền tảng hỗ trợ quản lý, theo dõi và kết nối hoạt động chi đoàn một cách hiệu quả.",
+        );
 
-                    let updates = {};
-                    updates['/attendance'] = null;
-                    updates['/minutes'] = null;
+        // Dựng giao diện lõi
+        systemBuildMainAttendanceTable();
+        statsRenderComprehensiveTable();
 
-                    db.ref().update(updates).then(() => {
-                        alert("Hệ thống đã dọn sạch toàn bộ lịch sử điểm danh chuyên cần thành công!");
-                        loadDataByDate();
-                    }).catch(err => {
-                        alert("Gặp lỗi trong quá trình xóa: " + err.message);
-                    });
-                }
-            }
+        // Đảm bảo block Admin CRUD mở sẵn kiến trúc
+        document.getElementById("blockAdminCrudSection").style.display =
+          "block";
+      });
+
+      // --- ENGINE ĐIỀU HƯỚNG CHUYỂN ĐỔI GIỮA 3 MỤC ĐỘC LẬP ---
+      function switchSystemTab(tabName) {
+        document
+          .getElementById("tabBtnAttendance")
+          .classList.remove("tab-state-active");
+        document
+          .getElementById("tabBtnStats")
+          .classList.remove("tab-state-active");
+        document
+          .getElementById("tabBtnCrud")
+          .classList.remove("tab-state-active");
+
+        document
+          .getElementById("sectionAttendance")
+          .classList.remove("section-state-visible");
+        document
+          .getElementById("sectionStats")
+          .classList.remove("section-state-visible");
+        document
+          .getElementById("sectionCrud")
+          .classList.remove("section-state-visible");
+
+        if (tabName === "attendance") {
+          document
+            .getElementById("tabBtnAttendance")
+            .classList.add("tab-state-active");
+          document
+            .getElementById("sectionAttendance")
+            .classList.add("section-state-visible");
+        } else if (tabName === "stats") {
+          document
+            .getElementById("tabBtnStats")
+            .classList.add("tab-state-active");
+          document
+            .getElementById("sectionStats")
+            .classList.add("section-state-visible");
+          statsRenderComprehensiveTable();
+        } else if (tabName === "crud") {
+          document
+            .getElementById("tabBtnCrud")
+            .classList.add("tab-state-active");
+          document
+            .getElementById("sectionCrud")
+            .classList.add("section-state-visible");
         }
+      }
 
-        function deleteAttendanceDayHistory() {
-            if (!isLoggedIn) return;
-            const dateStr = document.getElementById('attendanceDate').value;
-            if (!dateStr) return;
+      // --- UI ENGINE: HỘP THOẠI POP-UP DIALOG ĐỘC LẬP TÙY BIẾN CHUYÊN NGHIỆP ---
+      function uiDisplayCenterDialog(
+        title,
+        message,
+        isCustomLayout = false,
+        customHtml = "",
+      ) {
+        const overlay = document.getElementById("domGlobalModalOverlay");
+        const card = document.getElementById("domGlobalModalCard");
 
-            if (confirm(`Bạn có chắc chắn muốn xóa dữ liệu điểm danh và biên bản sinh hoạt ngày [ ${dateStr} ]?`)) {
-                let updates = {};
-                updates['/attendance/' + dateStr] = null;
-                updates['/minutes/' + dateStr] = null;
-
-                db.ref().update(updates).then(() => {
-                    alert(`Đã xóa lịch sử ngày ${dateStr} thành công!`);
-                    loadDataByDate();
-                }).catch(err => {
-                    alert("Lỗi khi xóa dữ liệu: " + err.message);
-                });
-            }
+        if (isCustomLayout) {
+          card.innerHTML = customHtml;
+        } else {
+          card.innerHTML = `
+                <h3>${title}</h3>
+                <div style="line-height:1.6; color: var(--text-secondary); text-size-adjust: 100%; font-size:0.95rem; margin-bottom:24px;">${message}</div>
+                <button class="btn-core btn-primary" onclick="uiCloseCenterDialog()" style="width:100%; padding:12px;">Xác Nhận & Đóng</button>
+            `;
         }
+        overlay.classList.add("overlay-active");
+      }
 
-        function changeAdminPassword() {
-            if(!isLoggedIn) return;
-            
-            let oldPwd = prompt("Nhập mật khẩu hiện tại để xác minh:");
-            if(oldPwd !== currentAdminPassword) {
-                alert("Mật khẩu xác minh không chính xác!");
-                return;
-            }
+      // Tắt màn hình chờ
+      function uiCloseCenterDialog() {
+        document
+          .getElementById("domGlobalModalOverlay")
+          .classList.remove("overlay-active");
+      }
 
-            let newPwd = prompt("Nhập mật khẩu mới:");
-            if(!newPwd || newPwd.trim() === "") {
-                alert("Mật khẩu mới không được để trống!");
-                return;
-            }
+      // --- MAIN TABLE ENGINE: KHỞI TẠO VÀ ĐIỀU PHỐI BẢNG ĐIỀU DANH CHÍNH ---
+      function systemBuildMainAttendanceTable() {
+        const tbody = document.getElementById("domMainTableBody");
+        tbody.innerHTML = "";
 
-            let confirmPwd = prompt("Nhập lại mật khẩu mới để xác nhận:");
-            if(newPwd !== confirmPwd) {
-                alert("Mật khẩu xác nhận không trùng khớp!");
-                return;
-            }
+        document.getElementById("domMetricTotal").innerText =
+          globalActiveMembers.length;
+        document.getElementById("domMasterRowCheckbox").checked = false;
 
-            db.ref('adminPassword').set(newPwd.trim()).then(() => {
-                alert("Đã đổi mật khẩu quản trị viên thành công!");
-            }).catch(err => {
-                alert("Lỗi khi cập nhật mật khẩu: " + err.message);
-            });
-        }
+        globalActiveMembers.forEach((member) => {
+          const tr = document.createElement("tr");
+          tr.id = `attendance-row-${member.stt}`;
+          tr.setAttribute("data-search-key", member.name.toLowerCase());
 
-        function getMemberStats(memberId) {
-            let total = 0, x = 0, p = 0, k = 0;
-            for (let date in attendanceDataGlobal) {
-                if (attendanceDataGlobal[date] && Object.keys(attendanceDataGlobal[date]).length > 0) {
-                    total++;
-                    let status = attendanceDataGlobal[date][memberId] || 'X';
-                    if(status === 'X') x++;
-                    if(status === 'P') p++;
-                    if(status === 'K') k++;
-                }
-            }
-            return { total, x, p, k };
-        }
+          tr.innerHTML = `
+                <td>
+                    <div style="display: inline-flex; align-items: center; gap: 12px;">
+                        <input type="checkbox" class="row-individual-selector" data-row-stt="${member.stt}" onchange="tableProcessRowHighlight(this)">
+                        <strong>${member.stt}</strong>
+                    </div>
+                </td>
+                <td style="text-align: left; font-weight: 600;">${member.name}</td>
+                <td><span style="background-color: rgba(37,99,235,0.08); color: var(--color-primary); padding: 5px 12px; border-radius: 6px; font-weight: 700; font-size: 0.85rem;">${member.yob}</span></td>
+                <td>
+                    <div class="attendance-checkbox-cluster">
+                        <label class="attendance-label-node node-x text-x"><input type="checkbox" data-owner-stt="${member.stt}" data-status-type="X" onchange="tableHandleCheckboxInteraction(this)"> X</label>
+                        <label class="attendance-label-node node-p text-p"><input type="checkbox" data-owner-stt="${member.stt}" data-status-type="P" onchange="tableHandleCheckboxInteraction(this)"> P</label>
+                        <label class="attendance-label-node node-k text-k"><input type="checkbox" data-owner-stt="${member.stt}" data-status-type="K" onchange="tableHandleCheckboxInteraction(this)"> K</label>
+                    </div>
+                </td>
+            `;
+          tbody.appendChild(tr);
+        });
 
-        function loadDataByDate() {
-            const dateStr = document.getElementById('attendanceDate').value;
-            if(!dateStr) return;
+        actionLoadDateAttendance();
+        crudBuildSyncManagementTable();
+        controlToolbarVisibility();
+      }
 
-            db.ref('minutes/' + dateStr).once('value').then((snapshot) => {
-                document.getElementById('meetingMinutes').value = snapshot.val() || "";
-            });
+      // XỬ LÝ CLICK ĐỒNG BỘ ĐIỂM DANH - CAM KẾT BAN ĐẦU KHÔNG TÍCH Ô NÀO
+      function tableHandleCheckboxInteraction(targetCheckbox) {
+        const ownerStt = targetCheckbox.getAttribute("data-owner-stt");
+        const statusType = targetCheckbox.getAttribute("data-status-type");
 
-            renderAttendanceTable();
-            updateStatsCounter();
-        }
-
-        function renderAttendanceTable() {
-            const dateStr = document.getElementById('attendanceDate').value;
-            const tbody = document.getElementById('attendanceTableBody');
-            const keyword = document.getElementById('searchName').value.toLowerCase().trim();
-            tbody.innerHTML = '';
-
-            const disabled = !isLoggedIn ? 'disabled' : '';
-            const opacity = !isLoggedIn ? 'opacity-40 cursor-not-allowed' : '';
-            
-            let filtered = originalMembers.filter(m => m.name.toLowerCase().includes(keyword));
-            let dayLogs = attendanceDataGlobal[dateStr] || {};
-
-            filtered.forEach((member, index) => {
-                let status = dayLogs[member.id] || 'X'; 
-                let memberStats = getMemberStats(member.id);
-
-                const row = document.createElement('tr');
-                row.className = "hover:bg-slate-800/30 transition-colors";
-                row.innerHTML = `
-                    <td class="py-3.5 px-6 text-center text-slate-500 font-bold">${index + 1}</td>
-                    <td class="py-3.5 px-6 font-semibold text-slate-200">${member.name}</td>
-                    <td class="py-3.5 px-6 text-center text-slate-400">${member.birthYear}</td>
-                    <td class="py-3.5 px-4 text-center text-blue-400 font-bold bg-slate-800/20">${memberStats.total}</td>
-                    <td class="py-3.5 px-6">
-                        <div class="flex justify-center gap-1.5 ${opacity}">
-                            <button ${disabled} onclick="updateFirebaseStatus('${member.id}', 'X')" class="w-10 h-8 rounded-lg font-bold border transition text-xs ${status === 'X' ? 'bg-emerald-600 text-white border-emerald-600 shadow-lg' : 'bg-slate-800 text-slate-400 border-slate-700'}">X</button>
-                            <button ${disabled} onclick="updateFirebaseStatus('${member.id}', 'P')" class="w-10 h-8 rounded-lg font-bold border transition text-xs ${status === 'P' ? 'bg-amber-500 text-white border-amber-500 shadow-lg' : 'bg-slate-800 text-slate-400 border-slate-700'}">P</button>
-                            <button ${disabled} onclick="updateFirebaseStatus('${member.id}', 'K')" class="w-10 h-8 rounded-lg font-bold border transition text-xs ${status === 'K' ? 'bg-rose-600 text-white border-rose-600 shadow-lg' : 'bg-slate-800 text-slate-400 border-slate-700'}">K</button>
-                        </div>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
-
-        function updateFirebaseStatus(memberId, status) {
-            if(!isLoggedIn) return;
-            const dateStr = document.getElementById('attendanceDate').value;
-            if(!dateStr) return;
-            db.ref('attendance/' + dateStr + '/' + memberId).set(status);
-        }
-
-        function saveMinutesFirebase() {
-            if(!isLoggedIn) return;
-            const dateStr = document.getElementById('attendanceDate').value;
-            const text = document.getElementById('meetingMinutes').value;
-            if(!dateStr) return;
-
-            db.ref('minutes/' + dateStr).set(text).then(() => {
-                alert("Đã lưu biên bản sinh hoạt hôm nay thành công!");
-            });
-        }
-
-        function updateStatsCounter() {
-            const dateStr = document.getElementById('attendanceDate').value;
-            let dayLogs = attendanceDataGlobal[dateStr] || {};
-            
-            let x = 0, pk = 0;
-            originalMembers.forEach(m => {
-                let status = dayLogs[m.id] || 'X';
-                if (status === 'X') x++;
-                else pk++;
-            });
-
-            document.getElementById('countX').innerText = x;
-            document.getElementById('countPK').innerText = pk;
-        }
-
-        function renderStatsTable() {
-            const tbody = document.getElementById('statsTableBody');
-            tbody.innerHTML = '';
-
-            originalMembers.forEach((m, idx) => {
-                let stats = getMemberStats(m.id);
-
-                const row = document.createElement('tr');
-                row.className = "hover:bg-slate-800/30";
-                row.innerHTML = `
-                    <td class="py-3.5 px-4 text-slate-500 font-bold">${idx + 1}</td>
-                    <td class="py-3.5 px-6 text-left font-semibold text-slate-200">${m.name}</td>
-                    <td class="py-3.5 px-4 text-slate-400">${m.birthYear}</td>
-                    <td class="py-3.5 px-4 text-blue-400 font-black bg-slate-800/10">${stats.total}</td>
-                    <td class="py-3.5 px-4 text-emerald-400 font-bold">${stats.x}</td>
-                    <td class="py-3.5 px-4 text-amber-400 font-bold">${stats.p}</td>
-                    <td class="py-3.5 px-4 text-rose-400 font-bold">${stats.k}</td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
-
-        function renderMembersTable() {
-            const tbody = document.getElementById('membersTableBody');
-            tbody.innerHTML = '';
-            
-            originalMembers.forEach((m, idx) => {
-                const row = document.createElement('tr');
-                row.className = "hover:bg-slate-800/30";
-                
-                let actionCells = '';
-                if(isLoggedIn) {
-                    actionCells = `
-                        <td class="py-3.5 px-6 text-center space-x-1">
-                            <button onclick="editMemberMode('${m.id}', '${m.name}', ${m.birthYear})" class="bg-blue-600/30 hover:bg-blue-600 text-blue-400 hover:text-white text-xs px-2 py-1 rounded transition"><i class="fa-solid fa-pen-to-square"></i> Sửa</button>
-                            <button onclick="deleteMemberFirebase('${m.id}', '${m.name}')" class="bg-rose-600/30 hover:bg-rose-600 text-rose-400 hover:text-white text-xs px-2 py-1 rounded transition"><i class="fa-solid fa-trash-can"></i> Xóa</button>
-                        </td>
-                    `;
-                }
-
-                row.innerHTML = `
-                    <td class="py-3.5 px-6 text-center text-slate-500 font-bold">${idx + 1}</td>
-                    <td class="py-3.5 px-6 font-semibold text-slate-200">${m.name}</td>
-                    <td class="py-3.5 px-6 text-center text-slate-400">${m.birthYear}</td>
-                    ${actionCells}
-                `;
-                tbody.appendChild(row);
+        if (targetCheckbox.checked) {
+          document
+            .querySelectorAll(
+              `input[data-owner-stt="${ownerStt}"][data-status-type]`,
+            )
+            .forEach((cb) => {
+              if (cb.getAttribute("data-status-type") !== statusType) {
+                cb.checked = false;
+              }
             });
         }
 
-        function saveMemberFirebase() {
-            const id = document.getElementById('editMemberId').value.trim();
-            const name = document.getElementById('inputMemberName').value.trim();
-            const year = parseInt(document.getElementById('inputMemberYear').value);
+        systemRecalculateLiveMetrics();
+        actionSaveDateAttendance();
+        statsRenderComprehensiveTable();
+      }
 
-            if(!name || !year) {
-                alert("Vui lòng nhập đầy đủ thông tin!");
-                return;
-            }
+      // TÍNH TOÁN SỐ LIỆU ĐIỂM DANH LIVE TRÊN MÀN HÌNH CHÍNH
+      function systemRecalculateLiveMetrics() {
+        let countX = 0,
+          countP = 0,
+          countK = 0;
+        document
+          .querySelectorAll(
+            '#domMainTableBody input[type="checkbox"][data-status-type]:checked',
+          )
+          .forEach((cb) => {
+            const type = cb.getAttribute("data-status-type");
+            if (type === "X") countX++;
+            if (type === "P") countP++;
+            if (type === "K") countK++;
+          });
+        document.getElementById("domMetricX").innerText = countX;
+        document.getElementById("domMetricP").innerText = countP;
+        document.getElementById("domMetricK").innerText = countK;
+      }
 
-            if(id === "") {
-                const newMemberRef = db.ref('members').push();
-                newMemberRef.set({ name: name, birthYear: year }).then(() => {
-                    alert("Đã thêm đoàn viên mới!");
-                    cancelMemberForm();
-                });
+      // NÚT CHỌN TẤT CẢ TẠI CỘT STT CHỈ ĐỂ CHỌN HÀNG/BÔI ĐẬM DÒNG (HIGHLIGHT) - ẨN/HIỆN THAO TÁC NHANH
+      function tableToggleMasterRowSelect(masterCb) {
+        document.querySelectorAll(".row-individual-selector").forEach((cb) => {
+          const tr = cb.closest("tr");
+          if (tr && tr.style.display !== "none") {
+            cb.checked = masterCb.checked;
+            if (cb.checked) {
+              tr.classList.add("row-state-highlighted");
             } else {
-                db.ref('members/' + id).set({ name: name, birthYear: year }).then(() => {
-                    alert("Cập nhật thông tin đoàn viên thành công!");
-                    cancelMemberForm();
-                });
+              tr.classList.remove("row-state-highlighted");
             }
-        }
+          }
+        });
+        controlToolbarVisibility();
+      }
 
-        function editMemberMode(id, name, year) {
-            document.getElementById('formTitle').innerHTML = `<i class="fa-solid fa-pen-to-square"></i> Sửa Thông Tin Đoàn Viên`;
-            document.getElementById('editMemberId').value = id;
-            document.getElementById('inputMemberName').value = name;
-            document.getElementById('inputMemberYear').value = year;
-            document.getElementById('btnCancelEdit').classList.remove('hidden');
-            window.scrollTo({ top: document.getElementById('memberFormContainer').offsetTop - 20, behavior: 'smooth' });
+      function tableProcessRowHighlight(individualCb) {
+        const tr = individualCb.closest("tr");
+        if (!tr) return;
+        if (individualCb.checked) {
+          tr.classList.add("row-state-highlighted");
+        } else {
+          tr.classList.remove("row-state-highlighted");
         }
+        controlToolbarVisibility();
+      }
 
-        function deleteMemberFirebase(id, name) {
-            if(confirm(`Xóa đoàn viên "${name}" khỏi danh sách?`)) {
-                db.ref('members/' + id).remove().then(() => {
-                    alert("Đã xóa xong.");
-                });
+      // HÀM ĐIỀU KHIỂN ẨN HIỆN CỦA THANH THAO TÁC NHANH DỰA TRÊN Ô TÍCH CHỌN SỐ DÒNG
+      function controlToolbarVisibility() {
+        if (!stateIsAdminMode) {
+          document.getElementById("blockAdminQuickToolbar").style.display =
+            "none";
+          return;
+        }
+        const selectedCount = document.querySelectorAll(
+          ".row-individual-selector:checked",
+        ).length;
+        const toolbar = document.getElementById("blockAdminQuickToolbar");
+
+        if (selectedCount > 0) {
+          toolbar.style.display = "flex";
+        } else {
+          toolbar.style.display = "none";
+        }
+      }
+
+      // LOGIC MỚI: TÍCH ĐỒNG LOẠT 3 PHẦN THAM GIA/PHÉP/KHÔNG PHÉP CHO CÁC DÒNG ĐƯỢC CHỌN
+      function toolbarApplyStatusToSelected(statusType) {
+        const selectedCheckboxes = document.querySelectorAll(
+          ".row-individual-selector:checked",
+        );
+        if (selectedCheckboxes.length === 0) return;
+
+        selectedCheckboxes.forEach((scb) => {
+          const stt = scb.getAttribute("data-row-stt");
+
+          // Tắt tích chọn cũ của dòng này trước
+          document
+            .querySelectorAll(
+              `input[data-owner-stt="${stt}"][data-status-type]`,
+            )
+            .forEach((cb) => (cb.checked = false));
+
+          // Kích hoạt ô trạng thái được yêu cầu (X, P hoặc K)
+          const targetBox = document.querySelector(
+            `input[data-owner-stt="${stt}"][data-status-type="${statusType}"]`,
+          );
+          if (targetBox) targetBox.checked = true;
+        });
+
+        systemRecalculateLiveMetrics();
+        actionSaveDateAttendance();
+        statsRenderComprehensiveTable();
+        actionApplyTableFilters();
+      }
+
+      // Hủy bỏ chọn dòng nhanh chóng
+      function toolbarClearRowSelection() {
+        document.getElementById("domMasterRowCheckbox").checked = false;
+        document.querySelectorAll(".row-individual-selector").forEach((cb) => {
+          cb.checked = false;
+          const tr = cb.closest("tr");
+          if (tr) tr.classList.remove("row-state-highlighted");
+        });
+        controlToolbarVisibility();
+      }
+
+      // SỬ DỤNG THANH ĐIỀU KHIỂN TÌM KIẾM VÀ LỌC TRẠNG THÁI TRÊN BẢNG CHÍNH
+      function actionApplyTableFilters() {
+        const queryText = document
+          .getElementById("ctrlSearchBox")
+          .value.toLowerCase()
+          .trim();
+        const filterStatus = document.getElementById("ctrlStatusFilter").value;
+
+        globalActiveMembers.forEach((member) => {
+          const tr = document.getElementById(`attendance-row-${member.stt}`);
+          if (!tr) return;
+
+          const isNameMatched = member.name.toLowerCase().includes(queryText);
+          const checkedBox = document.querySelector(
+            `input[data-owner-stt="${member.stt}"][data-status-type]:checked`,
+          );
+          const activeStatus = checkedBox
+            ? checkedBox.getAttribute("data-status-type")
+            : "EMPTY";
+
+          let isStatusMatched =
+            filterStatus === "ALL" || activeStatus === filterStatus;
+
+          if (isNameMatched && isStatusMatched) {
+            tr.style.display = "";
+          } else {
+            tr.style.display = "none";
+          }
+        });
+        toolbarClearRowSelection(); // Reset vùng bôi đen khi tiến hành lọc tránh lỗi hiển thị lệch dòng
+      }
+
+      // LƯU TRỮ VÀ KHỞI TẠI DỮ LIỆU ĐIỂM DANH THEO NGÀY VÀO LOCALSTORAGE
+      function actionSaveDateAttendance() {
+        const targetDateKey =
+          document.getElementById("ctrlAttendanceDate").value;
+        if (!targetDateKey) return;
+
+        const dateAttendanceStateArr = globalActiveMembers.map((member) => {
+          const checked = document.querySelector(
+            `input[data-owner-stt="${member.stt}"][data-status-type]:checked`,
+          );
+          return checked ? checked.getAttribute("data-status-type") : "";
+        });
+
+        localStorage.setItem(
+          `th_v3_date_state_${targetDateKey}`,
+          JSON.stringify(dateAttendanceStateArr),
+        );
+
+        let masterHistoryObj = JSON.parse(
+          localStorage.getItem("th_v3_master_history_vault") || "{}",
+        );
+        masterHistoryObj[targetDateKey] = dateAttendanceStateArr;
+        localStorage.setItem(
+          "th_v3_master_history_vault",
+          JSON.stringify(masterHistoryObj),
+        );
+
+        statsRenderComprehensiveTable();
+      }
+
+      function actionLoadDateAttendance() {
+        const targetDateKey =
+          document.getElementById("ctrlAttendanceDate").value;
+        if (!targetDateKey) return;
+
+        document
+          .querySelectorAll('#domMainTableBody input[type="checkbox"]')
+          .forEach((cb) => (cb.checked = false));
+        document
+          .querySelectorAll("#domMainTableBody tr")
+          .forEach((tr) => tr.classList.remove("row-state-highlighted"));
+
+        const savedDayJson = localStorage.getItem(
+          `th_v3_date_state_${targetDateKey}`,
+        );
+        if (savedDayJson) {
+          const stateArr = JSON.parse(savedDayJson);
+          stateArr.forEach((statusType, index) => {
+            if (statusType) {
+              let targetMember = globalActiveMembers[index];
+              if (targetMember) {
+                const cb = document.querySelector(
+                  `input[data-owner-stt="${targetMember.stt}"][data-status-type="${statusType}"]`,
+                );
+                if (cb) cb.checked = true;
+              }
             }
+          });
         }
 
-        function cancelMemberForm() {
-            document.getElementById('formTitle').innerHTML = `<i class="fa-solid fa-user-plus"></i> Thêm Đoàn Viên Mới`;
-            document.getElementById('editMemberId').value = "";
-            document.getElementById('inputMemberName').value = "";
-            document.getElementById('inputMemberYear').value = "";
-            document.getElementById('btnCancelEdit').classList.add('hidden');
+        systemRecalculateLiveMetrics();
+        actionApplyTableFilters();
+      }
+
+      // --- CRUD ENGINE: PHÂN HỆ QUẢN LÝ THÊM/SỬA/XÓA TÁCH BIỆT ĐỒNG BỘ TỰ ĐỘNG ---
+      function crudBuildSyncManagementTable() {
+        const tbody = document.getElementById("domCrudTableBody");
+        if (!tbody) return;
+        tbody.innerHTML = "";
+
+        globalActiveMembers.forEach((member) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+                <td><b>${member.stt}</b></td>
+                <td style="text-align: left; font-weight: 600;">${member.name}</td>
+                <td><span style="font-weight: 700; color: var(--color-primary);">${member.yob}</span></td>
+                <td>
+                    <button class="btn-core btn-secondary" style="padding: 4px 12px; font-size: 0.8rem;" onclick="crudActionLoadMemberToForm(${member.stt})"><i class="fa-solid fa-user-pen"></i> Sửa</button>
+                    <button class="btn-core" style="padding: 4px 12px; font-size: 0.8rem; background-color: #fee2e2; color: #ef4444; border:none;" onclick="crudActionExecuteDeleteMember(${member.stt})"><i class="fa-solid fa-user-xmark"></i> Xóa</button>
+                </td>
+            `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      function crudActionLoadMemberToForm(stt) {
+        const member = globalActiveMembers.find((m) => m.stt === stt);
+        if (!member) return;
+
+        document.getElementById("formStateTargetStt").value = member.stt;
+        document.getElementById("formInputName").value = member.name;
+        document.getElementById("formInputYob").value = member.yob;
+
+        document.getElementById("btnFormSubmitAction").innerHTML =
+          '<i class="fa-solid fa-floppy-disk"></i> Cập Nhật Dòng';
+        document.getElementById("btnFormSubmitAction").className =
+          "btn-core btn-warning";
+        document.getElementById("btnFormCancelAction").style.display =
+          "inline-flex";
+
+        document.getElementById("formInputName").focus();
+      }
+
+      function crudResetFormState() {
+        document.getElementById("formStateTargetStt").value = "";
+        document.getElementById("formInputName").value = "";
+        document.getElementById("formInputYob").value = "2008";
+
+        document.getElementById("btnFormSubmitAction").innerHTML =
+          '<i class="fa-solid fa-circle-plus"></i> Thêm Mới';
+        document.getElementById("btnFormSubmitAction").className =
+          "btn-core btn-primary";
+        document.getElementById("btnFormCancelAction").style.display = "none";
+      }
+
+      function crudExecuteSaveMember() {
+        const nameValue = document.getElementById("formInputName").value.trim();
+        const yobValue = parseInt(
+          document.getElementById("formInputYob").value,
+        );
+        const stateSttStr = document.getElementById("formStateTargetStt").value;
+
+        if (!nameValue || !yobValue) {
+          uiDisplayCenterDialog(
+            "LỖI HOẠT ĐỘNG",
+            "Họ tên đoàn viên và năm sinh không được phép để trống.",
+          );
+          return;
         }
 
-        function initializeDefaultMembers() {
-            if(!confirm("Nạp danh sách 42 đoàn viên gốc chi đoàn Tiến Hòa lên đám mây?")) return;
-            const defaultList = [
-                { name: "Nguyễn Trần Thảo Nguyên", birthYear: 2011 }, { name: "Trần Văn Sáng", birthYear: 2011 },
-                { name: "Lê Minh Thiếu", birthYear: 2011 }, { name: "Kiều Đình Nam", birthYear: 2011 },
-                { name: "Nguyễn Diệp Tú", birthYear: 2011 }, { name: "Trần Hữu Thịnh", birthYear: 2011 },
-                { name: "Hoàng Khánh Ngọc", birthYear: 2011 }, { name: "Cao Đức Huy", birthYear: 2010 },
-                { name: "Nguyễn Thị Quỳnh Nhi", birthYear: 2010 }, { name: "Lê Nguyễn Minh Hằng", birthYear: 2010 },
-                { name: "Lê Minh Đăng", birthYear: 2010 }, { name: "Phạm Thị Thu Hiền", birthYear: 2010 },
-                { name: "Nguyễn Anh Dũng", birthYear: 2010 }, { name: "Nguyễn Hà Linh", birthYear: 2010 },
-                { name: "Nguyễn Bảo Nam ", birthYear: 2010 }, { name: "Nguyễn Lê Đăng Đán", birthYear: 2009 },
-                { name: "Nguyễn Đức Huy", birthYear: 2009 }, { name: "Đinh Gia Như", birthYear: 2009 },
-                { name: "Lương Viết Dũng", birthYear: 2009 }, { name: "Phan Viết Hào", birthYear: 2009 },
-                { name: "Nguyễn Hoài Nam", birthYear: 2009 }, { name: "Lương Viết Thành", birthYear: 2009 },
-                { name: "Phan Khánh Linh", birthYear: 2009 }, { name: "Nguyễn Tuấn Sang", birthYear: 2009 },
-                { name: "Nguyễn Ngọc Ánh ", birthYear: 2009 }, { name: "Nguyễn Hoàng Gia Bảo", birthYear: 2008 },
-                { name: "Trần Anh Duy ", birthYear: 2008 }, { name: "Vũ Uyên Ly", birthYear: 2008 },
-                { name: "Đinh Phương Bắc", birthYear: 2008 }, { name: "Lê Thảo My", birthYear: 2008 },
-                { name: "Lê Trà My", birthYear: 2008 }, { name: "Nguyễn Viết Đề", birthYear: 2008 },
-                { name: "Nguyễn Đăng Duy", birthYear: 2008 }, { name: "Nguyễn Thị Quỳnh Loan", birthYear: 2008 },
-                { name: "Lê Minh Thắng", birthYear: 2008 }, { name: "Nguyễn Bảo Thi", birthYear: 2008 },
-                { name: "Trần Minh Hưng", birthYear: 2008 }, { name: "Phạm Phương Vy", birthYear: 2008 },
-                { name: "Nguyễn Anh Quốc", birthYear: 2008 }, { name: "Bùi Mai Phương", birthYear: 2008 },
-                { name: "Nguyễn Ngọc Hà", birthYear: 2008 }, { name: "Nguyễn Ngọc Hà", birthYear: 2008 }
-            ];
-            let updates = {};
-            defaultList.forEach((m, i) => { updates['/members/m' + (i + 1)] = m; });
-            db.ref().update(updates);
+        if (stateSttStr !== "") {
+          let targetStt = parseInt(stateSttStr);
+          let idx = globalActiveMembers.findIndex((m) => m.stt === targetStt);
+          if (idx !== -1) {
+            globalActiveMembers[idx].name = nameValue;
+            globalActiveMembers[idx].yob = yobValue;
+            uiDisplayCenterDialog(
+              "THÀNH CÔNG",
+              `Đã cập nhật thông tin chỉnh sửa của đoàn viên STT số ${targetStt} thành công trên toàn bộ hệ thống.`,
+            );
+          }
+        } else {
+          let maxStt =
+            globalActiveMembers.length > 0
+              ? Math.max(...globalActiveMembers.map((m) => m.stt)) + 1
+              : 1;
+          globalActiveMembers.push({
+            stt: maxStt,
+            name: nameValue,
+            yob: yobValue,
+          });
+          uiDisplayCenterDialog(
+            "ĐÃ THÊM MỚI",
+            `Đoàn viên mới <b>${nameValue}</b> đã được tạo lập dữ liệu thành công.`,
+          );
         }
 
-        function toggleAuth() {
-            if (!isLoggedIn) {
-                let pwd = prompt("Nhập mật khẩu quản trị viên:");
-                if (pwd === currentAdminPassword || (currentAdminPassword === "admin" && pwd === "00")) { 
-                    isLoggedIn = true; 
-                } else { 
-                    alert("Mật khẩu nhập vào không chính xác!"); 
-                }
-            } else { 
-                isLoggedIn = false; 
-                cancelMemberForm(); 
+        localStorage.setItem(
+          "th_master_members_db_v3",
+          JSON.stringify(globalActiveMembers),
+        );
+        crudResetFormState();
+        systemBuildMainAttendanceTable();
+      }
+
+      function crudActionExecuteDeleteMember(stt) {
+        let idx = globalActiveMembers.findIndex((m) => m.stt === stt);
+        if (idx !== -1) {
+          let deletedName = globalActiveMembers[idx].name;
+          globalActiveMembers.splice(idx, 1);
+
+          globalActiveMembers.forEach((m, i) => {
+            m.stt = i + 1;
+          });
+
+          localStorage.setItem(
+            "th_master_members_db_v3",
+            JSON.stringify(globalActiveMembers),
+          );
+          crudResetFormState();
+          systemBuildMainAttendanceTable();
+          uiDisplayCenterDialog(
+            "ĐÃ THỰC THI XÓA",
+            `Hệ thống đã loại bỏ hoàn toàn đoàn viên <b>${deletedName}</b> ra khỏi danh sách.`,
+          );
+        }
+      }
+
+      function crudExecuteDeleteEntireDateHistory() {
+        const currentDateKey =
+          document.getElementById("ctrlAttendanceDate").value;
+        if (!currentDateKey) return;
+
+        localStorage.removeItem(`th_v3_date_state_${currentDateKey}`);
+        let masterHistoryObj = JSON.parse(
+          localStorage.getItem("th_v3_master_history_vault") || "{}",
+        );
+        delete masterHistoryObj[currentDateKey];
+        localStorage.setItem(
+          "th_v3_master_history_vault",
+          JSON.stringify(masterHistoryObj),
+        );
+
+        systemBuildMainAttendanceTable();
+        uiDisplayCenterDialog(
+          "ĐÃ XÓA NHẬT KÝ",
+          `Đã xóa sạch toàn bộ cột lịch sử điểm danh của ngày họp ${currentDateKey}.`,
+        );
+      }
+
+      // --- CHỨC NĂNG MỚI: XÓA VÀ KHÔI PHỤC TOÀN BỘ CƠ SỞ DỮ LIỆU VAULT ---
+      function systemClearAllDatabaseVault() {
+        let masterHistoryObj = localStorage.getItem(
+          "th_v3_master_history_vault",
+        );
+        let masterMembersObj = localStorage.getItem("th_master_members_db_v3");
+
+        if (masterHistoryObj || masterMembersObj) {
+          localStorage.setItem(
+            "th_backup_history_vault",
+            masterHistoryObj || "{}",
+          );
+          localStorage.setItem(
+            "th_backup_members_db",
+            masterMembersObj || "[]",
+          );
+        }
+
+        localStorage.removeItem("th_v3_master_history_vault");
+
+        // Dọn dẹp các key ngày lẻ
+        for (let i = 0; i < localStorage.length; i++) {
+          let key = localStorage.key(i);
+          if (key && key.startsWith("th_v3_date_state_")) {
+            localStorage.removeItem(key);
+            i--;
+          }
+        }
+
+        systemBuildMainAttendanceTable();
+        statsRenderComprehensiveTable();
+        uiDisplayCenterDialog(
+          "ĐÃ XÓA TẤT CẢ DỮ LIỆU",
+          "Hệ thống đã xóa sạch toàn bộ lịch sử điểm danh của các ngày trên trình duyệt. Bản sao lưu tạm thời đã được ghi nhận.",
+        );
+      }
+
+      function systemRestoreAllDatabaseVault() {
+        let backupHistory = localStorage.getItem("th_backup_history_vault");
+        let backupMembers = localStorage.getItem("th_backup_members_db");
+
+        if (!backupHistory && !backupMembers) {
+          uiDisplayCenterDialog(
+            "KHÔNG CÓ DỮ LIỆU KHÔI PHỤC",
+            "Hệ thống chưa tìm thấy tệp bản ghi sao lưu lịch sử nào trước đó để tiến hành khôi phục.",
+          );
+          return;
+        }
+
+        if (backupHistory) {
+          localStorage.setItem("th_v3_master_history_vault", backupHistory);
+          let historyObj = JSON.parse(backupHistory);
+          Object.keys(historyObj).forEach((dateKey) => {
+            localStorage.setItem(
+              `th_v3_date_state_${dateKey}`,
+              JSON.stringify(historyObj[dateKey]),
+            );
+          });
+        }
+
+        if (backupMembers) {
+          localStorage.setItem("th_master_members_db_v3", backupMembers);
+          globalActiveMembers = JSON.parse(backupMembers);
+        }
+
+        systemBuildMainAttendanceTable();
+        statsRenderComprehensiveTable();
+        uiDisplayCenterDialog(
+          "KHÔI PHỤC THÀNH CÔNG",
+          "Hệ thống đã phục hồi thành công toàn bộ dữ liệu lịch sử điểm danh và danh sách đoàn viên từ bộ nhớ sao lưu.",
+        );
+      }
+
+      // --- STATS ENGINE: BẢNG TRA CỨU THỐNG KÊ LỌC THEO LỊCH CHUYÊN SÂU ---
+      // Hàm reset bộ lọc lịch thống kê về chế độ cộng dồn tất cả ngày
+      function statsResetToAllDates() {
+        document.getElementById("ctrlHistoryStatsDatePicker").value = "";
+        statsRenderComprehensiveTable();
+      }
+
+      function statsRenderComprehensiveTable() {
+        const tbody = document.getElementById("domHistoryStatsTableBody");
+        if (!tbody) return;
+        tbody.innerHTML = "";
+
+        let masterHistoryObj = JSON.parse(
+          localStorage.getItem("th_v3_master_history_vault") || "{}",
+        );
+        const selectedDate = document.getElementById(
+          "ctrlHistoryStatsDatePicker",
+        ).value;
+
+        let focusDatesArray = [];
+        // Nếu người dùng không chọn ngày nào thì tính cộng dồn toàn bộ lịch sử
+        if (!selectedDate) {
+          focusDatesArray = Object.keys(masterHistoryObj).sort();
+        } else {
+          // Ngược lại chỉ lấy đúng ngày được chỉ định trên lịch sử chọn
+          if (masterHistoryObj[selectedDate]) {
+            focusDatesArray.push(selectedDate);
+          }
+        }
+
+        if (focusDatesArray.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="6" style="color: var(--text-muted); padding: 24px;">Hệ thống chưa ghi nhận bất kỳ dữ liệu lịch sử nào phù hợp với ngày được chọn.</td></tr>`;
+          return;
+        }
+
+        // Duyệt qua tất cả các ngày được chọn, ngày nào có ít nhất một người có trạng thái (X, P, K) thì tính là 1 buổi tổ chức của chi đoàn
+        let totalSessionsOrganized = 0;
+        focusDatesArray.forEach((dateKey) => {
+          let dayRecordArray = masterHistoryObj[dateKey];
+          if (dayRecordArray && dayRecordArray.length > 0) {
+            // Kiểm tra xem trong ngày này có ô nào được tích chọn không (khác chuỗi rỗng)
+            let hasAnyAttendance = dayRecordArray.some(
+              (status) => status !== undefined && status !== "",
+            );
+            if (hasAnyAttendance) {
+              totalSessionsOrganized++;
             }
-            updateAuthUI();
-            renderAttendanceTable();
-            renderMembersTable();
+          }
+        });
+
+        globalActiveMembers.forEach((member, indexOffset) => {
+          let tallyX = 0,
+            tallyP = 0,
+            tallyK = 0;
+
+          focusDatesArray.forEach((dateKey) => {
+            let dayRecordArray = masterHistoryObj[dateKey];
+            if (dayRecordArray && dayRecordArray[indexOffset] !== undefined) {
+              let markStatus = dayRecordArray[indexOffset];
+              if (markStatus === "X") tallyX++;
+              if (markStatus === "P") tallyP++;
+              if (markStatus === "K") tallyK++;
+            }
+          });
+
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+                <td>${member.stt}</td>
+                <td style="text-align: left; font-weight: 600;">${member.name}</td>
+                <td><b style="color: var(--color-success); font-size:1.05rem;">${tallyX}</b></td>
+                <td><b style="color: var(--color-warning); font-size:1.05rem;">${tallyP}</b></td>
+                <td><b style="color: var(--color-danger); font-size:1.05rem;">${tallyK}</b></td>
+                <td><b style="color: var(--color-purple); font-size:1.05rem;">${totalSessionsOrganized}</b></td>
+            `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      // --- AUTHENTICATION ENGINE: BẢO MẬT PHÂN QUYỀN TRUNG TÂM POP-UP ---
+      function openAuthenticationDialog() {
+        if (stateIsAdminMode) {
+          stateIsAdminMode = false;
+          document
+            .getElementById("domMainAttendanceTable")
+            .classList.add("table-lock-state");
+          document.getElementById("txtRoleBadge").innerHTML =
+            '<i class="fa-solid fa-lock"></i> Vui lòng đăng nhập để quản lý';
+          document.getElementById("txtRoleBadge").style.backgroundColor =
+            "#64748b";
+          document.getElementById("btnAuthTrigger").innerHTML =
+            '<i class="fa-solid fa-key"></i> Đăng Nhập Admin';
+
+          document.getElementById("adminMediaPanel").style.display = "none";
+          document.getElementById("btnPassModifyTrigger").style.display =
+            "none";
+
+          document
+            .getElementById("btnExcelMergeTrigger")
+            .classList.add("btn-disabled-style");
+
+          controlToolbarVisibility();
+
+          uiDisplayCenterDialog(
+            "ĐÃ ĐĂNG XUẤT",
+            "Đã thu hồi toàn bộ đặc quyền quản trị an toàn. Trở về trạng thái bảo vệ dữ liệu đóng.",
+          );
+          return;
         }
 
-        function updateAuthUI() {
-            const text = document.getElementById('roleText');
-            const btn = document.getElementById('authBtn');
-            const thActions = document.getElementById('thActions');
-            const memberForm = document.getElementById('memberFormContainer');
-            
-            document.getElementById('changeBgBtn').classList.toggle('hidden', !isLoggedIn);
-            document.getElementById('btnSaveMinutes').classList.toggle('hidden', !isLoggedIn);
-            document.getElementById('changePwdBtn').classList.toggle('hidden', !isLoggedIn);
-            document.getElementById('btnDeleteHistory').classList.toggle('hidden', !isLoggedIn);
-            document.getElementById('btnDeleteAllHistory').classList.toggle('hidden', !isLoggedIn); // Ẩn/Hiện nút xóa hết
-            
-            if(isLoggedIn) {
-                text.innerText = "Quản trị viên";
-                btn.innerHTML = "<i class='fa-solid fa-right-from-bracket'></i> Đăng xuất";
-                document.getElementById('meetingMinutes').removeAttribute('disabled');
-                thActions.classList.remove('hidden');
-                memberForm.classList.remove('hidden');
-                if(originalMembers.length === 0) document.getElementById('btnInitData').classList.remove('hidden');
+        let customAuthLayoutHtml = `
+            <h3>ĐĂNG NHẬP HỆ THỐNG</h3>
+            <div style="text-align: left; margin-bottom: 14px;">
+                <label style="font-size: 0.8rem; font-weight:700; color:var(--text-secondary);">TÀI KHOẢN HỆ THỐNG:</label>
+                <input type="text" id="inputAuthUser" class="input-premium" placeholder="Nhập tài khoản" style="margin-top:4px;">
+            </div>
+            <div style="text-align: left; margin-bottom: 20px;">
+                <label style="font-size: 0.8rem; font-weight:700; color:var(--text-secondary);">MẬT KHẨU KHÓA BẢO MẬT:</label>
+                <input type="password" id="inputAuthPass" class="input-premium" placeholder="Nhập mật khẩu hệ thống" style="margin-top:4px;">
+            </div>
+            <button class="btn-core btn-primary" onclick="executeSubmitLoginAction()" style="width:100%; padding:12px; margin-bottom:14px;">Đăng Nhập</button>
+            <p style="margin:4px 0;"><a href="#" onclick="actionRenderForgotPasswordWidget()" style="color:var(--color-danger); font-weight:700; text-decoration:none; font-size:0.9rem;">Đồng chí quên thông tin mật khẩu?</a></p>
+        `;
+        uiDisplayCenterDialog("", "", true, customAuthLayoutHtml);
+      }
+
+      function actionRenderForgotPasswordWidget() {
+        let forgotLayoutHtml = `
+            <h3>QUÊN MẬT KHẨU HỆ THỐNG</h3>
+            <div class="zalo-communication-box">
+                <i class="fa-brands fa-square-whatsapp" style="font-size:1.5rem;"></i>
+                Vui Lòng Liên Hệ Zalo : 0942.410.186 ( Đồng chí Hào ) Để Được Xác Minh & Cầm Mật Khẩu Quản Trị Mới
+            </div>
+            <button class="btn-core btn-secondary" onclick="uiCloseCenterDialog()" style="width:100%; justify-content:center; margin-top:24px; padding:12px;">Quay Lại Đóng</button>
+        `;
+        uiDisplayCenterDialog("", "", true, forgotLayoutHtml);
+      }
+
+      function executeSubmitLoginAction() {
+        const inputU = document.getElementById("inputAuthUser").value.trim();
+        const inputP = document.getElementById("inputAuthPass").value.trim();
+        const storedSecretPass =
+          localStorage.getItem("th_admin_secret_password_v3") || "tienhoa2026";
+
+        if (inputU === "chidoantienhoa" && inputP === storedSecretPass) {
+          stateIsAdminMode = true;
+          document
+            .getElementById("domMainAttendanceTable")
+            .classList.remove("table-lock-state");
+          document.getElementById("txtRoleBadge").innerHTML =
+            '<i class="fa-solid fa-unlock-keyhole"></i> Chế độ: Admin Quản Lý 🔓';
+          document.getElementById("txtRoleBadge").style.backgroundColor =
+            "var(--color-success)";
+          document.getElementById("btnAuthTrigger").innerHTML =
+            '<i class="fa-solid fa-door-open"></i> Đăng Xuất Admin';
+
+          document.getElementById("adminMediaPanel").style.display = "flex";
+          document.getElementById("btnPassModifyTrigger").style.display =
+            "inline-flex";
+
+          document
+            .getElementById("btnExcelMergeTrigger")
+            .classList.remove("btn-disabled-style");
+
+          controlToolbarVisibility();
+
+          uiCloseCenterDialog();
+          uiDisplayCenterDialog(
+            "ĐĂNG NHẬP THÀNH CÔNG",
+            "Chào mừng bạn đến với hệ thống Đoàn! Chúc bạn một ngày làm việc hiệu quả và tràn đầy nhiệt huyết.",
+          );
+        } else {
+          uiDisplayCenterDialog(
+            "THẤT BẠI",
+            "Thông tin Tài khoản hoặc Mật khẩu quản trị vừa nhập chưa chính xác!",
+          );
+        }
+      }
+
+      function openPasswordModificationDialog() {
+        let passLayoutHtml = `
+            <h3>THAY ĐỔI MẬT KHẨU ADMIN</h3>
+            <div style="text-align: left; margin-bottom: 12px;">
+                <input type="password" id="inputModifyOldPass" class="input-premium" placeholder="Nhập mật khẩu cũ hiện tại">
+            </div>
+            <div style="text-align: left; margin-bottom: 18px;">
+                <input type="password" id="inputModifyNewPass" class="input-premium" placeholder="Nhập mật khẩu mới mong muốn">
+            </div>
+            <button class="btn-core btn-primary" onclick="executePasswordModification()" style="width:100%; padding:12px;">Xác Nhận Thay Đổi Mật Khẩu</button>
+            <button class="btn-core btn-secondary" onclick="uiCloseCenterDialog()" style="width:100%; margin-top:10px; padding:12px;">Hủy Bỏ & Đóng</button>
+        `;
+        uiDisplayCenterDialog("", "", true, passLayoutHtml);
+      }
+
+      function executePasswordModification() {
+        const oldP = document.getElementById("inputModifyOldPass").value.trim();
+        const newP = document.getElementById("inputModifyNewPass").value.trim();
+        const currentPass =
+          localStorage.getItem("th_admin_secret_password_v3") || "123456";
+
+        if (oldP !== currentPass) {
+          uiDisplayCenterDialog(
+            "LỖI XÁC THỰC",
+            "Mật khẩu cũ hiện tại vừa gõ không chính xác.",
+          );
+          return;
+        }
+        if (!newP) {
+          uiDisplayCenterDialog(
+            "THIẾU THÔNG TIN",
+            "Mật khẩu mới không được để trống ký tự khoảng trắng.",
+          );
+          return;
+        }
+
+        localStorage.setItem("th_admin_secret_password_v3", newP);
+        uiDisplayCenterDialog(
+          "THÀNH CÔNG",
+          "Mật khẩu quản trị cấp cao của Admin đã được thiết lập mã mới an toàn.",
+        );
+      }
+
+      // --- MEDIA ENGINE: THAY ĐỔI BANNER / LOGO ĐA NĂNG ĐỘ PHÂN GIẢI CAO ---
+      function invokeMediaDialog(mediaType) {
+        statePendingMediaChangeType = mediaType;
+        const dialogueTitle =
+          mediaType === "banner" ? "Ảnh Bìa Hệ Thống" : "Logo Chi Đoàn";
+
+        let mediaLayoutHtml = `
+            <h3>THAY ĐỔI ${dialogueTitle.toUpperCase()} HIGH-RES</h3>
+            <p style="text-align:left; font-weight:700; margin:14px 0 6px 0; color:var(--text-secondary); font-size:0.85rem;">CÁCH 1: DÁN ĐƯỜNG LINK URL ẢNH SIÊU NÉT</p>
+            <input type="text" id="inputMediaUrl" class="input-premium" placeholder="Dán link ảnh từ internet vào đây..." style="margin-bottom:16px;">
+            <p style="text-align:left; font-weight:700; margin:6px 0 6px 0; color:var(--text-secondary); font-size:0.85rem;">CÁCH 2: CHỌN FILE GỐC TỪ THIẾT BỊ (ĐỘ NÉT GỐC 100%)</p>
+            <input type="file" id="inputMediaFile" accept="image/*" class="input-premium" style="margin-bottom:24px; padding:8px 12px;">
+            <button class="btn-core btn-primary" onclick="processSaveUltraHDMedia()" style="width:100%; padding:12px;">Áp Dụng Thay Đổi Diện Mạo</button>
+            <button class="btn-core btn-secondary" onclick="uiCloseCenterDialog()" style="width:100%; margin-top:10px; padding:12px;">Hủy Bỏ</button>
+        `;
+        uiDisplayCenterDialog("", "", true, mediaLayoutHtml);
+      }
+
+      function processSaveUltraHDMedia() {
+        const urlString = document.getElementById("inputMediaUrl").value.trim();
+        const selectedFile = document.getElementById("inputMediaFile").files[0];
+
+        if (selectedFile) {
+          const fileReader = new FileReader();
+          fileReader.onload = function (e) {
+            applyAndCacheMediaHQData(e.target.result);
+          };
+          fileReader.readAsDataURL(selectedFile);
+        } else if (urlString) {
+          applyAndCacheMediaHQData(urlString);
+        } else {
+          uiDisplayCenterDialog(
+            "LỖI THAO TÁC",
+            "Đồng chí vui lòng điền link liên kết URL hoặc chọn tệp tin hình ảnh từ bộ nhớ máy.",
+          );
+        }
+      }
+
+      function applyAndCacheMediaHQData(finalImageSource) {
+        if (statePendingMediaChangeType === "banner") {
+          document.getElementById("domSystemBanner").style.backgroundImage =
+            `url('${finalImageSource}')`;
+          localStorage.setItem("th_hq_system_banner", finalImageSource);
+        } else if (statePendingMediaChangeType === "logo") {
+          document.getElementById("domSystemLogo").src = finalImageSource;
+          localStorage.setItem("th_hq_system_logo", finalImageSource);
+        }
+        uiCloseCenterDialog();
+        uiDisplayCenterDialog(
+          "HOÀN TẤT DIỆN MẠO",
+          "Cấu trúc hình ảnh đồ họa độ phân giải cao đã được đồng bộ hóa thành công trên thiết bị.",
+        );
+      }
+
+      // --- SPREADSHEET EXCEL INTEGRATION ENGINE (XỬ LÝ FILE EXCEL CHUYÊN SÂU) ---
+      function helperFormatExcelSheet(worksheet, dataMatrix) {
+        // Hàm phụ cấu hình căn giữa và độ rộng thích hợp cho các cột không bị mất chữ
+        const colWidths = [];
+        dataMatrix.forEach((row) => {
+          row.forEach((cell, i) => {
+            const cellVal =
+              cell !== null && cell !== undefined ? cell.toString() : "";
+            if (!colWidths[i] || cellVal.length > colWidths[i]) {
+              colWidths[i] = cellVal.length;
+            }
+          });
+        });
+        worksheet["!cols"] = colWidths.map((w) => ({
+          wch: Math.max(w + 5, 12),
+        }));
+
+        // Duyệt tất cả ô để định dạng cân bằng ở giữa, in đậm dòng đầu
+        for (let cellId in worksheet) {
+          if (cellId[0] === "!") continue;
+          if (!worksheet[cellId].s) worksheet[cellId].s = {};
+
+          worksheet[cellId].s.alignment = {
+            horizontal: "center",
+            vertical: "center",
+            wrapText: true,
+          };
+
+          // Kiểm tra xem có phải dòng tiêu đề số 1 không để thiết lập In Đậm
+          const rowNum = parseInt(cellId.replace(/[^0-9]/g, ""));
+          if (rowNum === 1) {
+            worksheet[cellId].s.font = {
+              bold: true,
+              name: "Arial",
+              sz: 11,
+            };
+          }
+        }
+      }
+
+      function actionExportSingleDayExcel() {
+        const dateString =
+          document.getElementById("ctrlAttendanceDate").value ||
+          "Chưa_Xác_Định_Ngày";
+        const workbookDataMatrix = [
+          [
+            "STT",
+            "Họ và Tên Đoàn Viên",
+            "Năm Sinh",
+            `Trạng thái điểm danh ngày ${dateString}`,
+          ],
+        ];
+
+        globalActiveMembers.forEach((member) => {
+          const checkedBox = document.querySelector(
+            `input[data-owner-stt="${member.stt}"][data-status-type]:checked`,
+          );
+          const currentStatus = checkedBox
+            ? checkedBox.getAttribute("data-status-type")
+            : "";
+          workbookDataMatrix.push([
+            member.stt,
+            member.name,
+            member.yob,
+            currentStatus,
+          ]);
+        });
+
+        const workbook = XLSX.utils.book_new();
+        const worksheet = XLSX.utils.aoa_to_sheet(workbookDataMatrix);
+        helperFormatExcelSheet(worksheet, workbookDataMatrix);
+        XLSX.utils.book_append_sheet(workbook, worksheet, "NhatKyDiemDanh");
+        XLSX.writeFile(workbook, `DiemDanh_ChiDoan_TienHoa_${dateString}.xlsx`);
+      }
+
+      function actionExportComprehensiveReport() {
+        let masterHistoryObj = JSON.parse(
+          localStorage.getItem("th_v3_master_history_vault") || "{}",
+        );
+        let recordDates = Object.keys(masterHistoryObj).sort();
+
+        let topHeaderRow = ["STT", "Họ và Tên Đoàn Viên", "Năm Sinh"];
+        recordDates.forEach((date) => topHeaderRow.push(`Ngày ${date}`));
+        topHeaderRow.push(
+          "Tổng Buổi Tham Gia (X)",
+          "Nghỉ Có Phép (P)",
+          "Nghỉ Không Phép (K)",
+        );
+
+        let spreadsheetDataMatrix = [topHeaderRow];
+
+        globalActiveMembers.forEach((member, indexOffset) => {
+          let dataRow = [member.stt, member.name, member.yob];
+          let sumX = 0,
+            sumP = 0,
+            sumK = 0;
+
+          recordDates.forEach((date) => {
+            let dayRecordArray = masterHistoryObj[date];
+            if (dayRecordArray && dayRecordArray[indexOffset] !== undefined) {
+              let statusSymbol = dayRecordArray[indexOffset];
+              dataRow.push(statusSymbol);
+              if (statusSymbol === "X") sumX++;
+              if (statusSymbol === "P") sumP++;
+              if (statusSymbol === "K") sumK++;
             } else {
-                text.innerText = "Khách Xem";
-                btn.innerHTML = "<i class='fa-solid fa-right-to-bracket'></i> Đăng nhập";
-                document.getElementById('meetingMinutes').setAttribute('disabled', 'true');
-                thActions.classList.add('hidden');
-                memberForm.classList.add('hidden');
-                document.getElementById('btnInitData').classList.add('hidden');
+              dataRow.push("");
             }
-        }
+          });
 
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById('content-' + tabName).classList.remove('hidden');
-            document.querySelectorAll('.tab-btn').forEach(b => b.className = "tab-btn flex-1 min-w-[120px] py-2.5 rounded-lg text-sm font-bold transition flex items-center justify-center gap-2 text-slate-400 hover:bg-slate-800 hover:text-slate-200");
-            document.getElementById('tab-' + tabName).className = "tab-btn flex-1 min-w-[120px] py-2.5 rounded-lg text-sm font-bold transition flex items-center justify-center gap-2 bg-blue-600 text-white";
-        }
+          dataRow.push(sumX, sumP, sumK);
+          spreadsheetDataMatrix.push(dataRow);
+        });
 
-        function exportAllFirebaseToExcel() {
-            let sortedDates = Object.keys(attendanceDataGlobal).sort();
-            let headerRow = ["STT", "HỌ VÀ TÊN", "Năm sinh", "Tổng số buổi", "Vắng (K)", "Phép (P)"];
-            sortedDates.forEach(d => {
-                if (attendanceDataGlobal[d] && Object.keys(attendanceDataGlobal[d]).length > 0) {
-                    headerRow.push(d);
-                }
-            }); 
+        const workbook = XLSX.utils.book_new();
+        const worksheet = XLSX.utils.aoa_to_sheet(spreadsheetDataMatrix);
+        helperFormatExcelSheet(worksheet, spreadsheetDataMatrix);
+        XLSX.utils.book_append_sheet(workbook, worksheet, "BaoCaoTongHop");
+        XLSX.writeFile(
+          workbook,
+          `Bao_Cao_Tong_Hop_So_Hoa_Chi_Doan_Tien_Hoa.xlsx`,
+        );
+      }
 
-            let excelRows = [
-                ["DANH SÁCH ĐOÀN VIÊN XÃ ĐỨC QUANG"],
-                ["Chi đoàn thôn Tiến Hòa"],
-                [],
-                headerRow
-            ];
+      // VÙNG SỬA ĐỔI: TỰ ĐỘNG ĐỒNG BỘ LÊN EXCEL KHÔNG CẦN CHỌN TỆP (CÓ HIỆU ỨNG CHỜ LOANH QUANH 2 GIÂY CHUYÊN NGHIỆP)
+      function actionDirectSyncExcelReport() {
+        const activeDateInputStr =
+          document.getElementById("ctrlAttendanceDate").value || "Chưa rõ ngày";
 
-            originalMembers.forEach((m, idx) => {
-                let stats = getMemberStats(m.id);
-                let rowData = [idx + 1, m.name, m.birthYear, stats.total, stats.k, stats.p];
-                
-                sortedDates.forEach(date => {
-                    if (attendanceDataGlobal[date] && Object.keys(attendanceDataGlobal[date]).length > 0) {
-                        let status = attendanceDataGlobal[date][m.id] || "X";
-                        rowData.push(status);
-                    }
-                });
-                excelRows.push(rowData);
+        // Hiện thông báo đang đồng bộ xử lý (Có vòng tròn xoay spinner chuyên nghiệp)
+        uiDisplayCenterDialog(
+          "",
+          "",
+          true,
+          `<h3>HỆ THỐNG ĐANG XỬ LÝ ĐỒNG BỘ</h3>
+           <div style="line-height:1.6; color: var(--text-secondary); font-size:0.95rem; margin-bottom:24px; display:flex; flex-direction:column; align-items:center; gap:16px;">
+              <i class="fa-solid fa-spinner fa-spin" style="font-size: 2.2rem; color: var(--color-primary);"></i>
+              <p>Đang đồng bộ...</p>
+           </div>`,
+        );
+
+        // Giả lập tiến trình đồng bộ dữ liệu thông minh đúng 2 giây (2000ms)
+        setTimeout(() => {
+          let masterHistoryObj = JSON.parse(
+            localStorage.getItem("th_v3_master_history_vault") || "{}",
+          );
+          let recordDates = Object.keys(masterHistoryObj).sort();
+
+          if (!recordDates.includes(activeDateInputStr)) {
+            recordDates.push(activeDateInputStr);
+          }
+
+          let topHeaderRow = ["STT", "Họ và Tên Đoàn Viên", "Năm Sinh"];
+          recordDates.forEach((date) => topHeaderRow.push(`Ngày ${date}`));
+          topHeaderRow.push("Tham Gia (X)", "Có Phép (P)", "Không Phép (K)");
+
+          let parsedDataMatrix = [topHeaderRow];
+
+          globalActiveMembers.forEach((member, indexOffset) => {
+            let dataRow = [member.stt, member.name, member.yob];
+            let sumX = 0,
+              sumP = 0,
+              sumK = 0;
+
+            recordDates.forEach((date) => {
+              let dayRecordArray = masterHistoryObj[date];
+              let statusSymbol = "";
+
+              if (date === activeDateInputStr) {
+                const checkedBox = document.querySelector(
+                  `input[data-owner-stt="${member.stt}"][data-status-type]:checked`,
+                );
+                statusSymbol = checkedBox
+                  ? checkedBox.getAttribute("data-status-type")
+                  : "";
+              } else if (
+                dayRecordArray &&
+                dayRecordArray[indexOffset] !== undefined
+              ) {
+                statusSymbol = dayRecordArray[indexOffset];
+              }
+
+              dataRow.push(statusSymbol);
+              if (statusSymbol === "X") sumX++;
+              if (statusSymbol === "P") sumP++;
+              if (statusSymbol === "K") sumK++;
             });
 
-            const ws = XLSX.utils.aoa_to_sheet(excelRows);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Chi Đoàn Tiến Hòa");
-            XLSX.writeFile(wb, `Danhsachdoanvientienhoa_Firebase.xlsx`);
+            dataRow.push(sumX, sumP, sumK);
+            parsedDataMatrix.push(dataRow);
+          });
+
+          const newWorkbook = XLSX.utils.book_new();
+          const newWorksheet = XLSX.utils.aoa_to_sheet(parsedDataMatrix);
+
+          // Thực thi căn bằng ở giữa ô, co giãn độ rộng cột và in đậm tiêu đề
+          helperFormatExcelSheet(newWorksheet, parsedDataMatrix);
+
+          XLSX.utils.book_append_sheet(
+            newWorkbook,
+            newWorksheet,
+            "DongBoTichHop",
+          );
+          XLSX.writeFile(
+            newWorkbook,
+            `DiemDanh_TienHoa_DongBo_TichHop_${activeDateInputStr}.xlsx`,
+          );
+
+          // Tắt màn hình chờ và hiển thị thông báo thành công
+          uiCloseCenterDialog();
+          uiDisplayCenterDialog(
+            "ĐỒNG BỘ THÀNH CÔNG",
+            `Dữ liệu điểm danh ngày <b>${activeDateInputStr}</b> đã được tự động đồng bộ hóa lên tệp Excel hoàn tất! Toàn bộ các ô chữ đã tự động cân bằng vào giữa và căn chỉnh độ rộng cột chuẩn xác.`,
+          );
+        }, 2000);
+      }
+
+      // --- THEME ENGINE: ĐIỀU PHỐI GIAO DIỆN SÁNG / TỐI ---
+      function triggerToggleTheme() {
+        const rootElement = document.documentElement;
+        if (rootElement.getAttribute("data-theme") === "dark") {
+          rootElement.setAttribute("data-theme", "light");
+        } else {
+          rootElement.setAttribute("data-theme", "dark");
         }
+      }
     </script>
-</body>
+    
+};
+  </body>
 </html>
